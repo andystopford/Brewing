@@ -1,7 +1,7 @@
 #!/usr/bin/python
 import sys, time
 from PyQt4 import QtCore, QtGui
-from alestock_v2_0_01 import Ui_MainWindow
+from alestockUI_v2 import Ui_MainWindow
 
 try:
     _fromUtf8 = QtCore.QString.fromUtf8
@@ -44,21 +44,28 @@ class Mainwindow (QtGui.QMainWindow):
         self.pkt_use = 3 
         self.vol = 60
         self.dirty = False
+        self.ui.button_reStock.setChecked(True)
+        self.mode_grp = [self.ui.button_reStock, self.ui.button_use]
 
         self.alarm_time = 0
-        self.palette = QtGui.QPalette()          
+        self.palette = QtGui.QPalette() 
+
+        #Event filters
+        self.ui.grain_use.installEventFilter(self)         
 
         # Connect signals to slots
-        self.ui.button_noteSave.clicked.connect(self.test)
-        self.ui.button_startTimer.clicked.connect(self.start_timer)
-        self.ui.button_stopTimer.clicked.connect(self.stop_timer)
-        self.ui.button_grainUpdate.clicked.connect(self.grain_grp_update)
-        self.ui.button_hopUpdate.clicked.connect(self.hop_grp_update)
-        self.ui.button_yeastUpdate.clicked.connect(self.yeast_grp_update)
+        #self.ui.button_noteSave.clicked.connect(self.test)
+        self.ui.button_startTimer.clicked.connect(self.startTimer)
+        self.ui.button_stopTimer.clicked.connect(self.stopTimer)
+        self.ui.button_use.clicked.connect(self.grpUpdates)
+        self.ui.button_reStock.clicked.connect(self.recipeForm)
         self.ui.button_grainUseUpdate.clicked.connect(self.useGrain)
 
-        #self.ui.grain_use.itemChanged.connect(self.used_grain_wgt_enter)
-        #self.ui.hop_use.itemChanged.connect(self.used_hop_calc)
+        self.ui.grain_use.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+        self.ui.grain_use.connect(self.ui.grain_use, QtCore.SIGNAL
+            ("customContextMenuRequested(QPoint)"), self.grainUse_RClick)
+
+
 
 
     ###########################################################################
@@ -67,12 +74,9 @@ class Mainwindow (QtGui.QMainWindow):
         QtCore.QObject.connect(self.ctimer, QtCore.SIGNAL("timeout()"), self.alarm)
 
     ###########################################################################
-
-
-
     # Timer
 
-    def start_timer(self):
+    def startTimer(self):
         
         stop_time = self.ui.time_input.value() * 60
         self.alarm_time = QtCore.QTime.currentTime().addSecs(stop_time) # secs
@@ -98,7 +102,7 @@ class Mainwindow (QtGui.QMainWindow):
             self.ui.rem_time.setPalette(self.palette)
 
 
-    def stop_timer(self):
+    def stopTimer(self):
 
         self.ctimer.stop()
         self.ui.rem_time.setPlainText(str(0))
@@ -106,9 +110,21 @@ class Mainwindow (QtGui.QMainWindow):
         self.ui.rem_time.setPalette(self.palette)
 
     ###########################################################################
+    # General management
+
+    def grpUpdates(self):
+        self.grainGrp_update()
+        self.ui.grain_stock.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)
+        self.ui.grain_use.setEditTriggers(QtGui.QAbstractItemView.AllEditTriggers)
+
+    def recipeForm(self):
+        self.ui.grain_stock.setEditTriggers(QtGui.QAbstractItemView.DoubleClicked)
+        self.ui.grain_use.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)
+
+    ###########################################################################
     # Grain
 
-    def grain_grp_update(self):
+    def grainGrp_update(self):
 
         """ Adds an instance of class Grain to grain_list list of
         instances, sorts the list by EBC value and calls grain_table_update"""
@@ -129,10 +145,10 @@ class Mainwindow (QtGui.QMainWindow):
             self.ui.grain_stock.setRowCount(num + 1)
         # sort using int or 3, 10, 1 sorts to 1, 10, 3
         self.grain_list.sort(key = lambda Grain: int(Grain.ebc))
-        self.grain_table_update()
+        self.grainTable_update()
 
 
-    def grain_table_update(self): 
+    def grainTable_update(self): 
 
         """ Fills cells in the grain stock table with instances 
         from grain_list. """
@@ -162,9 +178,6 @@ class Mainwindow (QtGui.QMainWindow):
 
     def useGrain(self):
 
-        wgt = float(0)
-        extr = ""
-        ebc = ""
         self.used_grain_list = []
         total = 0
 
@@ -175,12 +188,10 @@ class Mainwindow (QtGui.QMainWindow):
                 for item in self.grain_list:
                     if name == item.get_name():
                         extr = item.get_extr()
-                        ebc = item.get_ebc()             
-                total += wgt  
+                        ebc = item.get_ebc() 
+                total += wgt              
                 a_used_grain = Used_Grain(name, wgt, extr, ebc)
                 self.used_grain_list.append(a_used_grain)
-
-
 
         if total > 0:   # Calculate percentages in table
             for item in self.used_grain_list:
@@ -192,52 +203,83 @@ class Mainwindow (QtGui.QMainWindow):
 
                 perCent = QtGui.QTableWidgetItem(perCent)
                 self.ui.grain_use.setItem(pos, 2, perCent)
+                       
+        self.infoCalc()
 
 
+    def infoCalc(self):
+        mash_eff = float(80)
+        vol = float(60)
+        self.mash_deg = 0
+        self.total_col = 0
 
-        print ""
-        print len(self.used_grain_list)
         for item in self.used_grain_list:
-            print item.name
-            print item.wgt
-            print item.extr
-            print item.ebc
+            pos = self.used_grain_list.index(item)
+            wgt = float(Used_Grain.get_wgt(item))
+            extr = float(Used_Grain.get_extr(item))
+            col = int(Used_Grain.get_ebc(item))
+            deg = (extr * wgt * (mash_eff / 100)) / vol
+            self.mash_deg += deg
+            col *= wgt     
+            self.total_col += col
 
-    def contextMenuEvent(self, event):
+        OG = str(self.mash_deg)
+        OG = QtGui.QTableWidgetItem(OG)
+
+        self.total_col = int(self.total_col * 10 * (mash_eff / 100)) / vol    
+        colour = str(self.total_col)
+        colour = QtGui.QTableWidgetItem(colour)
+
+        self.ui.brew_results.setItem(0, 1, colour)
+
+        self.ui.brew_results.setItem(0, 2, OG)
+
+
+    def grainUse_RClick(self):
+
         self.menu = QtGui.QMenu(self)
-        Action = QtGui.QAction('Delete', self)
-        Action.triggered.connect(self.test)
+        Action = QtGui.QAction('Delete', self)        
         self.menu.addAction(Action)
         # add other required actions
         self.menu.popup(QtGui.QCursor.pos())
-    
-    def test(self):
-        thing = self.ui.grain_use.currentRow()
-        print thing
+        Action.triggered.connect(self.deleteUsedGrain)
 
-    def used_grain_update(self):
+
+
+    def deleteUsedGrain(self):
+        #Get the value in the right-clicked cell
+        row = self.ui.grain_use.currentRow()
+        column = self.ui.grain_use.currentColumn()
+        sel = self.ui.grain_use.item(row, column)
+        row = int(row)
+        self.used_grain_list.pop(row)
+        self.usedGrain_update()
+
+
+    def usedGrain_update(self):
+
+        self.ui.grain_use.clearContents()
 
         for item in self.used_grain_list:
             pos = self.used_grain_list.index(item)
             name = Used_Grain.get_name(item)
-            wgt = Used_Grain.get_wgt(item)
+            wgt = str(Used_Grain.get_wgt(item)) #tablewidget won't accept float. Gawdnosewhy
             ebc = Used_Grain.get_ebc(item)
-  
-        name = QtGui.QTableWidgetItem(name)
-        self.ui.grain_use.setItem(pos, 0, name)
 
-        wgt = QtGui.QTableWidgetItem(wgt)
-        self.ui.grain_use.setItem(pos, 1, wgt)
+            name = QtGui.QTableWidgetItem(name)
+            self.ui.grain_use.setItem(pos, 0, name)
 
+            wgt = QtGui.QTableWidgetItem(wgt)
+            self.ui.grain_use.setItem(pos, 1, wgt)
 
+        self.useGrain()
 
-   
 
 
     ###########################################################################
     #Hops
 
-    def hop_grp_update(self):
+    def hopGrp_update(self):
 
         """ Adds an instance of class Hop to hop_list list of
         instances, sorts the list alphabetically and calls hop_table_update"""
@@ -255,10 +297,10 @@ class Mainwindow (QtGui.QMainWindow):
         if len(self.hop_list) > 5:
             self.ui.hop_stock.setRowCount(num + 1)
         self.hop_list.sort(key = lambda Hop: Hop.name)
-        self.hop_table_update()
+        self.hopTable_update()
 
 
-    def hop_table_update(self):
+    def hopTable_update(self):
 
         self.ui.hop_stock.clearContents()
 
@@ -280,7 +322,7 @@ class Mainwindow (QtGui.QMainWindow):
     ###########################################################################
     #Yeast
 
-    def yeast_grp_update(self):
+    def yeastGrp_update(self):
 
         self.yeast_list = []
         for row in xrange(self.ui.yeast_stock.rowCount()):
@@ -294,9 +336,9 @@ class Mainwindow (QtGui.QMainWindow):
         if len(self.yeast_list) > 5:
             self.ui.yeast_stock.setRowCount(num + 1)
         self.yeast_list.sort(key = lambda yeast: yeast.name)
-        self.yeast_table_update()
+        self.yeastTable_update()
 
-    def yeast_table_update(self):
+    def yeastTable_update(self):
 
         self.ui.yeast_stock.clearContents()
 
