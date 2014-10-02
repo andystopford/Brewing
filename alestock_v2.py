@@ -37,12 +37,13 @@ class Mainwindow (QtGui.QMainWindow):
         self.grain_select = 0
         self.hop_select = 0
         self.yeast_select = 0
-        self.mash_temp = 66
+        self.mash_temp = str(66)
+        self.mash_eff = str(80)
+        self.vol = str(60)
         self.mash_deg = 0
         self.total_col = 0
         self.total_ebu = 0
         self.pkt_use = 3 
-        self.vol = 60
         self.dirty = False
         self.ui.button_reStock.setChecked(True)
         self.mode_grp = [self.ui.button_reStock, self.ui.button_use]
@@ -60,6 +61,7 @@ class Mainwindow (QtGui.QMainWindow):
         self.ui.button_use.clicked.connect(self.grpUpdates)
         self.ui.button_reStock.clicked.connect(self.recipeForm)
         self.ui.button_grainUseUpdate.clicked.connect(self.useGrain)
+        self.ui.button_hopUseUpdate.clicked.connect(self.useHop)
 
         self.ui.grain_use.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self.ui.grain_use.connect(self.ui.grain_use, QtCore.SIGNAL
@@ -112,15 +114,32 @@ class Mainwindow (QtGui.QMainWindow):
     ###########################################################################
     # General management
 
+    def initParams(self):
+
+        self.mash_temp = QtGui.QTableWidgetItem(self.mash_temp)
+        self.ui.brew_params.setItem(0, 0, self.mash_temp)
+        self.mash_eff = QtGui.QTableWidgetItem(self.mash_eff)
+        self.ui.brew_params.setItem(0, 1, self.mash_eff)
+        self.vol = QtGui.QTableWidgetItem(self.vol)
+        self.ui.brew_params.setItem(0, 2, self.vol)
+
     def grpUpdates(self):
+
         self.grainGrp_update()
         self.ui.grain_stock.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)
         self.ui.grain_use.setEditTriggers(QtGui.QAbstractItemView.AllEditTriggers)
 
-    def recipeForm(self):
-        self.ui.grain_stock.setEditTriggers(QtGui.QAbstractItemView.DoubleClicked)
-        self.ui.grain_use.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)
+        self.hopGrp_update()
+        self.ui.hop_stock.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)
+        self.ui.hop_use.setEditTriggers(QtGui.QAbstractItemView.AllEditTriggers)
 
+    def recipeForm(self):
+
+        self.ui.grain_stock.setEditTriggers(QtGui.QAbstractItemView.DoubleClicked)
+        self.ui.grain_use.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)    
+
+        self.ui.hop_stock.setEditTriggers(QtGui.QAbstractItemView.DoubleClicked)
+        self.ui.hop_use.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)
     ###########################################################################
     # Grain
 
@@ -204,12 +223,13 @@ class Mainwindow (QtGui.QMainWindow):
                 perCent = QtGui.QTableWidgetItem(perCent)
                 self.ui.grain_use.setItem(pos, 2, perCent)
                        
-        self.infoCalc()
+        self.grain_infoCalc()
 
 
-    def infoCalc(self):
-        mash_eff = float(80)
-        vol = float(60)
+    def grain_infoCalc(self):
+
+        self.mash_eff = float(self.ui.brew_params.item(0, 1).text())
+        self.vol = float(self.ui.brew_params.item(0, 2).text())
         self.mash_deg = 0
         self.total_col = 0
 
@@ -218,7 +238,7 @@ class Mainwindow (QtGui.QMainWindow):
             wgt = float(Used_Grain.get_wgt(item))
             extr = float(Used_Grain.get_extr(item))
             col = int(Used_Grain.get_ebc(item))
-            deg = (extr * wgt * (mash_eff / 100)) / vol
+            deg = (extr * wgt * (self.mash_eff / 100)) / self.vol
             self.mash_deg += deg
             col *= wgt     
             self.total_col += col
@@ -226,8 +246,9 @@ class Mainwindow (QtGui.QMainWindow):
         OG = str(self.mash_deg)
         OG = QtGui.QTableWidgetItem(OG)
 
-        self.total_col = int(self.total_col * 10 * (mash_eff / 100)) / vol    
-        colour = str(self.total_col)
+        self.total_col = int(self.total_col * 10 * (self.mash_eff / 100)) / self.vol    
+        colour = int(self.total_col)
+        colour = str(colour)
         colour = QtGui.QTableWidgetItem(colour)
 
         self.ui.brew_results.setItem(0, 1, colour)
@@ -240,7 +261,6 @@ class Mainwindow (QtGui.QMainWindow):
         self.menu = QtGui.QMenu(self)
         Action = QtGui.QAction('Delete', self)        
         self.menu.addAction(Action)
-        # add other required actions
         self.menu.popup(QtGui.QCursor.pos())
         Action.triggered.connect(self.deleteUsedGrain)
 
@@ -287,11 +307,11 @@ class Mainwindow (QtGui.QMainWindow):
         self.hop_list = []
         for row in xrange(self.ui.hop_stock.rowCount()):
             if self.ui.hop_stock.item(row,0) != None:                
-                hop_name = self.ui.hop_stock.item(row,0).text()                
-                hop_alpha = self.ui.hop_stock.item(row,1).text()            
-                hop_qty = self.ui.hop_stock.item(row,2).text()
-                a_hop = Hop(hop_name, hop_alpha, hop_qty)
-                if hop_name != "":
+                name = self.ui.hop_stock.item(row,0).text()                
+                alpha = self.ui.hop_stock.item(row,1).text()            
+                wgt = self.ui.hop_stock.item(row,2).text()
+                a_hop = Hop(name, alpha, wgt)
+                if name != "":
                     self.hop_list.append(a_hop)
         num = -1 + len(self.hop_list)
         if len(self.hop_list) > 5:
@@ -313,11 +333,43 @@ class Mainwindow (QtGui.QMainWindow):
             name = QtGui.QTableWidgetItem(name)
             self.ui.hop_stock.setItem(pos, 0, name)
 
-            val = QtGui.QTableWidgetItem(alpha)
-            self.ui.hop_stock.setItem(pos, 1, val)
+            alpha = QtGui.QTableWidgetItem(alpha)
+            self.ui.hop_stock.setItem(pos, 1, alpha)
 
-            qty = QtGui.QTableWidgetItem(wgt)
-            self.ui.hop_stock.setItem(pos, 2, qty)        
+            wgt = QtGui.QTableWidgetItem(wgt)
+            self.ui.hop_stock.setItem(pos, 2, wgt)     
+
+    def useHop(self):
+
+        self.used_hop_list = []
+        total = 0
+
+        for row in xrange(self.ui.hop_use.rowCount()):
+            if self.ui.hop_use.item(row,0) != None:                
+                name = self.ui.hop_use.item(row,0).text()
+                wgt = float(self.ui.hop_use.item(row,1).text())
+                time = float(self.ui.hop_use.item(row,2).text())
+                for item in self.hop_list:
+                    if name == item.get_name():
+                        alpha = item.get_alpha()
+                total += wgt 
+          
+                a_used_hop = Used_Hop(name, wgt, alpha, time)
+                self.used_hop_list.append(a_used_hop)
+
+                print ""
+                print len(self.used_hop_list)    
+                for item in self.used_hop_list:
+                    print name
+                    print wgt
+                    print time
+                    print ""          
+        #self.hop_infoCalc()
+
+
+
+
+
 
     ###########################################################################
     #Yeast
@@ -404,6 +456,24 @@ class Hop:
         return self.wgt
 
 
+class Used_Hop:
+    def __init__(self, name, alpha, wgt, time):
+        self.name = name
+        self.wgt = wgt
+        self.alpha = alpha
+        self.time = time
+    def get_name(self):
+        return self.name
+    def get_wgt(self):
+        return self.wgt
+    def get_alpha(self):
+        return self.alpha
+    def get_time(self):
+        return self.time
+    def __str__(self):
+        return (self.name)
+
+
 class Yeast:
     def __init__(self, name, pkts):
         self.name = name
@@ -449,4 +519,5 @@ if __name__ == "__main__":
     myapp = Mainwindow()
     myapp.show()
     #myapp.load_data()
+    myapp.initParams()
     sys.exit(app.exec_())  
