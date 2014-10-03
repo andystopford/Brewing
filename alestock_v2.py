@@ -1,5 +1,5 @@
 #!/usr/bin/python
-import sys, time
+import sys, time, math
 from PyQt4 import QtCore, QtGui
 from alestockUI_v2 import Ui_MainWindow
 
@@ -67,7 +67,13 @@ class Mainwindow (QtGui.QMainWindow):
         self.ui.grain_use.connect(self.ui.grain_use, QtCore.SIGNAL
             ("customContextMenuRequested(QPoint)"), self.grainUse_RClick)
 
+        self.ui.hop_use.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+        self.ui.hop_use.connect(self.ui.hop_use, QtCore.SIGNAL
+            ("customContextMenuRequested(QPoint)"), self.hopUse_RClick)
 
+        self.ui.yeast_use.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+        self.ui.yeast_use.connect(self.ui.yeast_use, QtCore.SIGNAL
+            ("customContextMenuRequested(QPoint)"), self.yeastUse_RClick)
 
 
     ###########################################################################
@@ -128,10 +134,17 @@ class Mainwindow (QtGui.QMainWindow):
         self.grainGrp_update()
         self.ui.grain_stock.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)
         self.ui.grain_use.setEditTriggers(QtGui.QAbstractItemView.AllEditTriggers)
+        self.ui.grain_stock.clearSelection() 
 
         self.hopGrp_update()
         self.ui.hop_stock.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)
         self.ui.hop_use.setEditTriggers(QtGui.QAbstractItemView.AllEditTriggers)
+        self.ui.hop_stock.clearSelection() 
+
+        self.yeastGrp_update()
+        self.ui.yeast_stock.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)
+        self.ui.yeast_use.setEditTriggers(QtGui.QAbstractItemView.AllEditTriggers)
+        self.ui.yeast_stock.clearSelection() 
 
     def recipeForm(self):
 
@@ -140,6 +153,9 @@ class Mainwindow (QtGui.QMainWindow):
 
         self.ui.hop_stock.setEditTriggers(QtGui.QAbstractItemView.DoubleClicked)
         self.ui.hop_use.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)
+
+        self.ui.yeast_stock.setEditTriggers(QtGui.QAbstractItemView.DoubleClicked)
+        self.ui.yeast_use.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)
     ###########################################################################
     # Grain
 
@@ -222,7 +238,8 @@ class Mainwindow (QtGui.QMainWindow):
 
                 perCent = QtGui.QTableWidgetItem(perCent)
                 self.ui.grain_use.setItem(pos, 2, perCent)
-                       
+         
+        self.ui.grain_use.clearSelection()              
         self.grain_infoCalc()
 
 
@@ -243,7 +260,9 @@ class Mainwindow (QtGui.QMainWindow):
             col *= wgt     
             self.total_col += col
 
-        OG = str(self.mash_deg)
+
+        OG = int(self.mash_deg)
+        OG = str(OG)
         OG = QtGui.QTableWidgetItem(OG)
 
         self.total_col = int(self.total_col * 10 * (self.mash_eff / 100)) / self.vol    
@@ -354,21 +373,74 @@ class Mainwindow (QtGui.QMainWindow):
                         alpha = item.get_alpha()
                 total += wgt 
           
-                a_used_hop = Used_Hop(name, wgt, alpha, time)
+                a_used_hop = Used_Hop(name, alpha, wgt, time)
                 self.used_hop_list.append(a_used_hop)
-
-                print ""
-                print len(self.used_hop_list)    
-                for item in self.used_hop_list:
-                    print name
-                    print wgt
-                    print time
-                    print ""          
-        #self.hop_infoCalc()
+       
+        self.ui.hop_use.clearSelection() 
+        self.hop_infoCalc()
 
 
+    def hop_infoCalc(self):
+
+        baseUtn = float(37)
+        curve = float(15)
+        curve *= -0.001
+        self.total_ebu = 0
+        vol = float(self.vol)
+
+        for item in self.used_hop_list:
+            wgt = float(Used_Hop.get_wgt(item))
+            alpha = float(Used_Hop.get_alpha(item))
+            time = float(Used_Hop.get_time(item))
+            boilComp = 1 - math.e ** (curve * time)
+            ut = baseUtn * boilComp
+            ebu = (wgt * alpha * ut) / (vol * 10)
+            self.total_ebu += int(ebu)
+
+        EBU = QtGui.QTableWidgetItem(str(self.total_ebu))
+        self.ui.brew_results.setItem(0, 0, EBU)
 
 
+    def hopUse_RClick(self):
+
+        self.menu = QtGui.QMenu(self)
+        Action = QtGui.QAction('Delete', self)        
+        self.menu.addAction(Action)
+        self.menu.popup(QtGui.QCursor.pos())
+        Action.triggered.connect(self.deleteUsedHop)
+
+
+
+    def deleteUsedHop(self):
+        #Get the value in the right-clicked cell
+        row = self.ui.hop_use.currentRow()
+        column = self.ui.hop_use.currentColumn()
+        sel = self.ui.hop_use.item(row, column)
+        row = int(row)
+        self.used_hop_list.pop(row)
+        self.usedHop_update()
+
+
+    def usedHop_update(self):
+
+        self.ui.hop_use.clearContents()
+
+        for item in self.used_hop_list:
+            pos = self.used_hop_list.index(item)
+            name = Used_Hop.get_name(item)
+            wgt = str(Used_Hop.get_wgt(item)) #tablewidget won't accept float. Gawdnosewhy
+            time = str(Used_Hop.get_time(item))
+
+            name = QtGui.QTableWidgetItem(name)
+            self.ui.hop_use.setItem(pos, 0, name)
+
+            wgt = QtGui.QTableWidgetItem(wgt)
+            self.ui.hop_use.setItem(pos, 1, wgt)
+
+            time = QtGui.QTableWidgetItem(time)
+            self.ui.hop_use.setItem(pos, 2, time)
+
+        self.useHop()
 
 
     ###########################################################################
@@ -390,18 +462,39 @@ class Mainwindow (QtGui.QMainWindow):
         self.yeast_list.sort(key = lambda yeast: yeast.name)
         self.yeastTable_update()
 
+
+    def useYeast(self):
+
+        self.used_yeast = self.ui.yeast_use.item(0, 0)
+        self.pkt_use = self.ui.yeast_use.item(0, 1)
+        self.ui.yeast_use.clearSelection() 
+
+
+    def yeastUse_RClick(self):
+
+        self.menu = QtGui.QMenu(self)
+        Action = QtGui.QAction('Delete', self)        
+        self.menu.addAction(Action)
+        self.menu.popup(QtGui.QCursor.pos())
+        Action.triggered.connect(self.deleteUsedYeast)
+
+
+    def deleteUsedYeast(self):
+
+        self.used_yeast = None
+        self.pkt_use = None
+        self.ui.yeast_use.clearContents()
+
+
     def yeastTable_update(self):
 
         self.ui.yeast_stock.clearContents()
-
         for item in self.yeast_list:
             pos = self.yeast_list.index(item)
             name = Yeast.get_name(item)
             pkts = Yeast.get_pkts(item)
-
             name = QtGui.QTableWidgetItem(name)
             self.ui.yeast_stock.setItem(pos, 0, name)
-
             qty = QtGui.QTableWidgetItem(pkts)
             self.ui.yeast_stock.setItem(pos, 1, qty)
 
