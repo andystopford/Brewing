@@ -3,7 +3,6 @@ import sys, time, math
 import xml.etree.cElementTree as ET
 from PyQt4 import QtCore, QtGui
 from alestockUI_v2 import Ui_MainWindow
-from xml.parsers import expat
 
 try:
     _fromUtf8 = QtCore.QString.fromUtf8
@@ -508,13 +507,14 @@ class Mainwindow (QtGui.QMainWindow):
 
         root = ET.Element('Root')
         stock = ET.SubElement(root, 'Stock')
+        grain = ET.SubElement(stock, 'Grain')
 
         #data_file = open("stockData", "w")
 
         for item in self.grain_list:
             name = item.get_name()
             name = str(name)
-            name = ET.SubElement(stock, name)
+            name = ET.SubElement(grain, name)
 
 
             ebc = str(item.get_ebc())
@@ -530,22 +530,27 @@ class Mainwindow (QtGui.QMainWindow):
             wgt = ET.SubElement(name, wgt)
             #print name, ebc, extr, wgt
 
+            #Need to make ebc, extr and wgt attributes of name
+
 
         #basename = "alestock_XML_test01.xml"
         path =  "/home/andy/D_Drive/Python/XML/alestock_XML_test01.xml" 
         with open(path, "w") as fo:
-            noteTree = ET.ElementTree(root)
-            noteTree.write(fo)
+            tree = ET.ElementTree(root)
+            tree.write(fo)
 
 
     def load_data(self):
 
-        root = ET.Element('Root')
+        #root = ET.Element('Root')
         path =  "/home/andy/D_Drive/Python/XML/alestock_XML_test01.xml"
         with open(path, "r") as fo:
-            noteTree = ET.ElementTree(root)
-            noteTree.parse(fo)
-            print "OK"
+            tree = ET.ElementTree(file = '/home/andy/D_Drive/Python/XML/alestock_XML_test01.xml')
+            #tree.parse(fo)
+            root = tree.getroot()
+            for elem in root.iter():
+                print elem.tag, elem.attrib
+            
 
 
 
