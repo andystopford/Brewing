@@ -1,7 +1,9 @@
 #!/usr/bin/python
 import sys, time, math
+import xml.etree.cElementTree as ET
 from PyQt4 import QtCore, QtGui
 from alestockUI_v2 import Ui_MainWindow
+from xml.parsers import expat
 
 try:
     _fromUtf8 = QtCore.QString.fromUtf8
@@ -55,6 +57,8 @@ class Mainwindow (QtGui.QMainWindow):
         self.ui.grain_use.installEventFilter(self)         
 
         # Connect signals to slots
+        self.ui.Save_Data.triggered.connect(self.save_data)
+        self.ui.Load_data.triggered.connect(self.load_data)
         #self.ui.button_noteSave.clicked.connect(self.test)
         self.ui.button_startTimer.clicked.connect(self.startTimer)
         self.ui.button_stopTimer.clicked.connect(self.stopTimer)
@@ -500,6 +504,59 @@ class Mainwindow (QtGui.QMainWindow):
 
     ############################################################################
 
+    def save_data(self):
+
+        root = ET.Element('Root')
+        stock = ET.SubElement(root, 'Stock')
+
+        #data_file = open("stockData", "w")
+
+        for item in self.grain_list:
+            name = item.get_name()
+            name = str(name)
+            name = ET.SubElement(stock, name)
+
+
+            ebc = str(item.get_ebc())
+            ebc = "_" + ebc
+            ebc = ET.SubElement(name, ebc)
+
+            extr = str(item.get_extr())
+            extr = "_" + extr
+            extr = ET.SubElement(name, extr)
+
+            wgt = str(item.get_wgt())
+            wgt = "_" + wgt
+            wgt = ET.SubElement(name, wgt)
+            #print name, ebc, extr, wgt
+
+
+        #basename = "alestock_XML_test01.xml"
+        path =  "/home/andy/D_Drive/Python/XML/alestock_XML_test01.xml" 
+        with open(path, "w") as fo:
+            noteTree = ET.ElementTree(root)
+            noteTree.write(fo)
+
+
+    def load_data(self):
+
+        root = ET.Element('Root')
+        path =  "/home/andy/D_Drive/Python/XML/alestock_XML_test01.xml"
+        with open(path, "r") as fo:
+            noteTree = ET.ElementTree(root)
+            noteTree.parse(fo)
+            print "OK"
+
+
+
+
+
+
+
+
+
+
+################################################################################
 class Grain:
     def __init__(self, name, EBC, extr, wgt):
         self.name = name
