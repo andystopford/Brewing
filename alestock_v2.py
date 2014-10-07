@@ -58,13 +58,18 @@ class Mainwindow (QtGui.QMainWindow):
         # Connect signals to slots
         self.ui.Save_Data.triggered.connect(self.save_data)
         self.ui.Load_data.triggered.connect(self.load_data)
+        self.ui.Save_Brew.triggered.connect(self.save_brew)
+        self.ui.Load_Brew.triggered.connect(self.load_brew)
         #self.ui.button_noteSave.clicked.connect(self.test)
         self.ui.button_startTimer.clicked.connect(self.startTimer)
         self.ui.button_stopTimer.clicked.connect(self.stopTimer)
-        self.ui.button_use.clicked.connect(self.grpUpdates)
-        self.ui.button_reStock.clicked.connect(self.recipeForm)
+
+        self.ui.button_use.clicked.connect(self.use)
+        self.ui.button_reStock.clicked.connect(self.reStock)
+
         self.ui.button_grainUseUpdate.clicked.connect(self.useGrain)
         self.ui.button_hopUseUpdate.clicked.connect(self.useHop)
+        self.ui.button_commit.clicked.connect(self.commit)
 
         self.ui.grain_use.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self.ui.grain_use.connect(self.ui.grain_use, QtCore.SIGNAL
@@ -131,34 +136,46 @@ class Mainwindow (QtGui.QMainWindow):
         self.ui.brew_params.setItem(0, 1, self.mash_eff)
         self.vol = QtGui.QTableWidgetItem(self.vol)
         self.ui.brew_params.setItem(0, 2, self.vol)
+        self.reStock()
+        self.ui.tabWidget.setCurrentIndex(1)
+        self.ui.button_commit.setEnabled(False)
 
-    def grpUpdates(self):
+
+    def use(self):
 
         self.grainGrp_update()
         self.ui.grain_stock.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)
         self.ui.grain_use.setEditTriggers(QtGui.QAbstractItemView.AllEditTriggers)
+        self.ui.grain_use.setAcceptDrops(True)
         self.ui.grain_stock.clearSelection() 
 
         self.hopGrp_update()
         self.ui.hop_stock.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)
         self.ui.hop_use.setEditTriggers(QtGui.QAbstractItemView.AllEditTriggers)
+        self.ui.hop_use.setAcceptDrops(True)
         self.ui.hop_stock.clearSelection() 
 
         self.yeastGrp_update()
         self.ui.yeast_stock.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)
         self.ui.yeast_use.setEditTriggers(QtGui.QAbstractItemView.AllEditTriggers)
+        self.ui.yeast_use.setAcceptDrops(True)
         self.ui.yeast_stock.clearSelection() 
+        self.ui.tabWidget.setCurrentIndex(0)
 
-    def recipeForm(self):
+
+    def reStock(self):
 
         self.ui.grain_stock.setEditTriggers(QtGui.QAbstractItemView.DoubleClicked)
-        self.ui.grain_use.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)    
+        self.ui.grain_use.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers) 
+        self.ui.grain_use.setAcceptDrops(False)   
 
         self.ui.hop_stock.setEditTriggers(QtGui.QAbstractItemView.DoubleClicked)
         self.ui.hop_use.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)
+        self.ui.hop_use.setAcceptDrops(False)
 
         self.ui.yeast_stock.setEditTriggers(QtGui.QAbstractItemView.DoubleClicked)
         self.ui.yeast_use.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)
+        self.ui.yeast_use.setAcceptDrops(False)
     ###########################################################################
     # Grain
 
@@ -244,6 +261,7 @@ class Mainwindow (QtGui.QMainWindow):
          
         self.ui.grain_use.clearSelection()              
         self.grain_infoCalc()
+        self.commit_enable()
 
 
     def grain_infoCalc(self):
@@ -381,6 +399,7 @@ class Mainwindow (QtGui.QMainWindow):
        
         self.ui.hop_use.clearSelection() 
         self.hop_infoCalc()
+        self.commit_enable()
 
 
     def hop_infoCalc(self):
@@ -468,9 +487,10 @@ class Mainwindow (QtGui.QMainWindow):
 
     def useYeast(self):
 
-        self.used_yeast = self.ui.yeast_use.item(0, 0)
-        self.pkt_use = self.ui.yeast_use.item(0, 1)
+        self.used_yeast = self.ui.yeast_use.item(0, 0).text()
+        self.pkt_use = int(self.ui.yeast_use.item(0, 1).text())
         self.ui.yeast_use.clearSelection() 
+        self.commit_enable()
 
 
     def yeastUse_RClick(self):
@@ -502,36 +522,105 @@ class Mainwindow (QtGui.QMainWindow):
             self.ui.yeast_stock.setItem(pos, 1, qty)
 
     ############################################################################
+    def commit_enable(self):
+        self.ui.button_commit.setEnabled(True)
+
+    def commit(self):
+
+        reply = QtGui.QMessageBox.question(self, "Commit Changes", 
+            "Commit changes to Database? (Data Save will still be required)", 
+                QtGui.QMessageBox.Yes|QtGui.QMessageBox.No|QtGui.QMessageBox.Cancel)
+        if reply == QtGui.QMessageBox.Cancel:
+                return False
+        elif reply == QtGui.QMessageBox.Yes:
+
+            for item in self.used_grain_list:
+                used_name = Used_Grain.get_name(item)
+                used_wgt = float(Used_Grain.get_wgt(item))
+                grain_dict = dict([(used_name, used_wgt)])
+                for item in self.grain_list:
+                    grain_name = Grain.get_name(item)
+                    if grain_name == used_name:
+                        item.wgt = float (item.wgt)
+                        item.wgt -= used_wgt
+                        if item.wgt < 0:
+                            item.wgt = 0
+                        item.wgt = str(item.wgt)
+                        self.grainTable_update()
+
+            for item in self.used_hop_list:
+                used_name = Used_Hop.get_name(item)
+                used_wgt = float(Used_Hop.get_wgt(item))
+                hop_dict = dict([(used_name, used_wgt)])
+                for item in self.hop_list:
+                    hop_name = Hop.get_name(item)
+                    if hop_name == used_name:
+                        item.wgt = float (item.wgt)
+                        item.wgt -= used_wgt
+                        if item.wgt < 0:
+                            item.wgt = 0
+                        item.wgt = str(item.wgt)
+                        self.hopTable_update()
+
+            self.useYeast()
+            for item in self.yeast_list:
+                yeast_name = Yeast.get_name(item)
+                if yeast_name == self.used_yeast:
+                    item.pkts = int(item.pkts)
+                    item.pkts -= self.pkt_use
+                    if item.pkts < 0:
+                        item.pkts = 0
+                    item.pkts = str(item.pkts)
+                    self.yeastTable_update()  
+
+                self.ui.button_commit.setEnabled(False)                  
+
+
+    ###########################################################################                
 
     def save_data(self):
 
         root = ET.Element('Root')
         stock = ET.SubElement(root, 'Stock')
         grain = ET.SubElement(stock, 'Grain')
-
-        #data_file = open("stockData", "w")
+        hop = ET.SubElement(stock, 'Hop')
+        yeast = ET.SubElement(stock, 'Yeast')
 
         for item in self.grain_list:
             name = item.get_name()
             name = str(name)
+            name = name.replace(' ', '_')
             name = ET.SubElement(grain, name)
-
-
             ebc = str(item.get_ebc())
             ebc = "_" + ebc
             ebc = ET.SubElement(name, ebc)
-
             extr = str(item.get_extr())
             extr = "_" + extr
             extr = ET.SubElement(name, extr)
-
             wgt = str(item.get_wgt())
             wgt = "_" + wgt
             wgt = ET.SubElement(name, wgt)
-            #print name, ebc, extr, wgt
 
-            #Need to make ebc, extr and wgt attributes of name
+        for item in self.hop_list:
+            name = item.get_name()
+            name = str(name)
+            name = name.replace(' ', '_')
+            name = ET.SubElement(hop, name)
+            alpha = str(item.get_alpha())
+            alpha = "_" + alpha
+            alpha = ET.SubElement(name, alpha)
+            wgt = str(item.get_wgt())
+            wgt = "_" + wgt
+            wgt = ET.SubElement(name, wgt)
 
+        for item in self.yeast_list:
+            name = item.get_name()
+            name = str(name)
+            name = name.replace(' ', '_')
+            name = ET.SubElement(yeast, name)
+            pkts = str(item.get_pkts())
+            pkts = "_" + pkts
+            pkts = ET.SubElement(name, pkts)
 
         #basename = "alestock_XML_test01.xml"
         path =  "/home/andy/D_Drive/Python/XML/alestock_XML_test01.xml" 
@@ -541,22 +630,124 @@ class Mainwindow (QtGui.QMainWindow):
 
 
     def load_data(self):
-
-        #root = ET.Element('Root')
+       
         path =  "/home/andy/D_Drive/Python/XML/alestock_XML_test01.xml"
         with open(path, "r") as fo:
-            tree = ET.ElementTree(file = '/home/andy/D_Drive/Python/XML/alestock_XML_test01.xml')
-            #tree.parse(fo)
+            tree = ET.ElementTree(file = path)
             root = tree.getroot()
             for elem in root.iter():
-                print elem.tag, elem.attrib
-            
+                if elem.tag == 'Grain':
+                    for grain in elem:
+                        grainData = []
+                        for data in grain:
+                            data = data.tag[1:]
+                            grainData.append(data)
+                        grainName = grain.tag.replace('_', ' ')
+                        a_grain = Grain(grainName, grainData[0], grainData[1], grainData[2])
+                        self.grain_list.append(a_grain)
+                    self.grainTable_update()
+
+                if elem.tag == 'Hop':
+                    for hop in elem:
+                        hopData = []
+                        for data in hop:
+                            data = data.tag[1:]
+                            hopData.append(data)
+                        hopName = hop.tag.replace('_', ' ')
+                        a_hop = Hop(hopName, hopData[0], hopData[1])
+                        self.hop_list.append(a_hop)
+                    self.hopTable_update()
+
+                if elem.tag == 'Yeast':
+                    for yeast in elem:
+                        yeastData = []
+                        for data in yeast:
+                            data = data.tag[1:]
+                            yeastData.append(data)
+                        yeastName = yeast.tag.replace('_', ' ')
+                        a_yeast = Yeast(yeastName, yeastData[0])
+                        self.yeast_list.append(a_yeast)
+                    self.yeastTable_update()
 
 
+    def save_brew(self):
+
+        root = ET.Element('Root')
+        ingredient = ET.SubElement(root, 'Ingredient')
+        grain = ET.SubElement(ingredient, 'Grain')
+        hop = ET.SubElement(ingredient, 'Hops')
+        yeast = ET.SubElement(ingredient, 'Yeast')
+
+        params = ET.SubElement(root, 'Params')
+        temp = ET.SubElement(params, 'Temp')
+        eff = ET.SubElement(params, 'Eff')
+        vol = ET.SubElement(params, 'Vol')
+
+        for item in self.used_grain_list:
+            name = item.get_name()
+            name = str(name)
+            name = name.replace(' ', '_')
+            name = ET.SubElement(grain, name)
+            wgt = str(item.get_wgt())
+            wgt = "_" + wgt
+            wgt = ET.SubElement(name, wgt)
+            ebc = str(item.get_ebc())
+            ebc = "_" + ebc
+            ebc = ET.SubElement(name, ebc)
+            extr = str(item.get_extr())
+            extr = "_" + extr
+            extr = ET.SubElement(name, extr)
 
 
+        for item in self.used_hop_list:
+            name = item.get_name()
+            name = str(name)
+            name = name.replace(' ', '_')
+            name = ET.SubElement(hop, name)
+            wgt = str(item.get_wgt())
+            wgt = "_" + wgt
+            wgt = ET.SubElement(name, wgt)
+            time = str(item.get_time())
+            time = "_" + time
+            time = ET.SubElement(name, time)
+
+        usedYeast = self.ui.yeast_use.item(0, 0).text()
+        usedYeast = str(usedYeast)
+        usedYeast = usedYeast.replace(' ', '_')
+        usedYeast = ET.SubElement(yeast, usedYeast)
+
+        pkts = self.pkt_use
+        pkts = str(pkts)
+        pkts = "_" + pkts
+        pkts = ET.SubElement(yeast, pkts)
+
+        temp.text = str(self.ui.brew_params.item(0, 0).text())
+        eff.text = str(self.ui.brew_params.item(0, 1).text())
+        vol.text = str(self.ui.brew_params.item(0, 2).text())
+
+        path =  "/home/andy/D_Drive/Python/XML/alestock_brew_test01.xml" 
+        with open(path, "w") as fo:
+            tree = ET.ElementTree(root)
+            tree.write(fo)
 
 
+    def load_brew(self):
+
+        path =  "/home/andy/D_Drive/Python/XML/alestock_brew_test01.xml" 
+        with open(path, "r") as fo:
+            tree = ET.ElementTree(file = path)
+            root = tree.getroot()
+            for elem in root.iter():
+                if elem.tag == 'Grain':
+                    for grain in elem:
+                        grainData = []
+                        for data in grain:
+                            data = data.tag[1:]
+                            grainData.append(data)
+                        grainName = grain.tag.replace('_', ' ')
+                        a_grain = Used_Grain(grainName, grainData[0], grainData[1], grainData[2])
+                        self.used_grain_list.append(a_grain)
+                        self.usedGrain_update()
 
 
 
