@@ -32,7 +32,7 @@ class Mainwindow (QtGui.QMainWindow):
         self.sel_grain = 0
         self.used_grain_list = []
         self.hop_list = []
-        self.used_hop = []
+        self.used_hop_list = []
         self.yeast_list = []
         self.used_yeast = ""
         self.grain_select = 0
@@ -45,6 +45,7 @@ class Mainwindow (QtGui.QMainWindow):
         self.total_col = 0
         self.total_ebu = 0
         self.pkt_use = 3 
+        self.loadingBrew = False
         self.dirty = False
         self.ui.button_reStock.setChecked(True)
         self.mode_grp = [self.ui.button_reStock, self.ui.button_use]
@@ -233,20 +234,28 @@ class Mainwindow (QtGui.QMainWindow):
 
     def useGrain(self):
 
-        self.used_grain_list = []
         total = 0
 
-        for row in xrange(self.ui.grain_use.rowCount()):
-            if self.ui.grain_use.item(row,0) != None:                
-                name = self.ui.grain_use.item(row,0).text()
-                wgt = float(self.ui.grain_use.item(row,1).text())
-                for item in self.grain_list:
-                    if name == item.get_name():
-                        extr = item.get_extr()
-                        ebc = item.get_ebc() 
-                total += wgt              
-                a_used_grain = Used_Grain(name, wgt, extr, ebc)
-                self.used_grain_list.append(a_used_grain)
+        if self.loadingBrew == False:
+            self.used_grain_list = []
+            
+            for row in xrange(self.ui.grain_use.rowCount()):
+                if self.ui.grain_use.item(row,0) != None:                
+                    name = self.ui.grain_use.item(row,0).text()
+                    wgt = float(self.ui.grain_use.item(row,1).text())
+                    for item in self.grain_list:
+                        if name == item.get_name():
+                            extr = item.get_extr()
+                            ebc = item.get_ebc() 
+                    total += wgt              
+                    a_used_grain = Used_Grain(name, ebc, extr, wgt)
+                    self.used_grain_list.append(a_used_grain)
+
+        else:
+            for item in self.used_grain_list:
+                wgt = float(item.get_wgt())
+                total += wgt
+
 
         if total > 0:   # Calculate percentages in table
             for item in self.used_grain_list:
@@ -281,7 +290,6 @@ class Mainwindow (QtGui.QMainWindow):
             col *= wgt     
             self.total_col += col
 
-
         OG = int(self.mash_deg)
         OG = str(OG)
         OG = QtGui.QTableWidgetItem(OG)
@@ -292,8 +300,8 @@ class Mainwindow (QtGui.QMainWindow):
         colour = QtGui.QTableWidgetItem(colour)
 
         self.ui.brew_results.setItem(0, 1, colour)
-
         self.ui.brew_results.setItem(0, 2, OG)
+        #self.loadingBrew = False
 
 
     def grainUse_RClick(self):
@@ -381,22 +389,23 @@ class Mainwindow (QtGui.QMainWindow):
 
     def useHop(self):
 
-        self.used_hop_list = []
-        total = 0
+        if self.loadingBrew == False:
+            self.used_hop_list = []
+            total = 0
 
-        for row in xrange(self.ui.hop_use.rowCount()):
-            if self.ui.hop_use.item(row,0) != None:                
-                name = self.ui.hop_use.item(row,0).text()
-                wgt = float(self.ui.hop_use.item(row,1).text())
-                time = float(self.ui.hop_use.item(row,2).text())
-                for item in self.hop_list:
-                    if name == item.get_name():
-                        alpha = item.get_alpha()
-                total += wgt 
-          
-                a_used_hop = Used_Hop(name, alpha, wgt, time)
-                self.used_hop_list.append(a_used_hop)
-       
+            for row in xrange(self.ui.hop_use.rowCount()):
+                if self.ui.hop_use.item(row,0) != None:                
+                    name = self.ui.hop_use.item(row,0).text()
+                    wgt = float(self.ui.hop_use.item(row,1).text())
+                    time = float(self.ui.hop_use.item(row,2).text())
+                    for item in self.hop_list:
+                        if name == item.get_name():
+                            alpha = item.get_alpha()
+                    total += wgt 
+              
+                    a_used_hop = Used_Hop(name, alpha, wgt, time)
+                    self.used_hop_list.append(a_used_hop)
+
         self.ui.hop_use.clearSelection() 
         self.hop_infoCalc()
         self.commit_enable()
@@ -421,6 +430,7 @@ class Mainwindow (QtGui.QMainWindow):
 
         EBU = QtGui.QTableWidgetItem(str(self.total_ebu))
         self.ui.brew_results.setItem(0, 0, EBU)
+        
 
 
     def hopUse_RClick(self):
@@ -688,15 +698,17 @@ class Mainwindow (QtGui.QMainWindow):
             name = str(name)
             name = name.replace(' ', '_')
             name = ET.SubElement(grain, name)
-            wgt = str(item.get_wgt())
-            wgt = "_" + wgt
-            wgt = ET.SubElement(name, wgt)
             ebc = str(item.get_ebc())
             ebc = "_" + ebc
             ebc = ET.SubElement(name, ebc)
             extr = str(item.get_extr())
             extr = "_" + extr
             extr = ET.SubElement(name, extr)
+            wgt = str(item.get_wgt())
+            wgt = "_" + wgt
+            wgt = ET.SubElement(name, wgt)
+            
+            
 
 
         for item in self.used_hop_list:
@@ -704,6 +716,9 @@ class Mainwindow (QtGui.QMainWindow):
             name = str(name)
             name = name.replace(' ', '_')
             name = ET.SubElement(hop, name)
+            alpha = str(item.get_alpha())
+            alpha = "_" + alpha
+            alpha = ET.SubElement(name, alpha)
             wgt = str(item.get_wgt())
             wgt = "_" + wgt
             wgt = ET.SubElement(name, wgt)
@@ -718,8 +733,7 @@ class Mainwindow (QtGui.QMainWindow):
 
         pkts = self.pkt_use
         pkts = str(pkts)
-        pkts = "_" + pkts
-        pkts = ET.SubElement(yeast, pkts)
+        usedYeast.text = pkts
 
         temp.text = str(self.ui.brew_params.item(0, 0).text())
         eff.text = str(self.ui.brew_params.item(0, 1).text())
@@ -733,6 +747,7 @@ class Mainwindow (QtGui.QMainWindow):
 
     def load_brew(self):
 
+        self.loadingBrew = True
         path =  "/home/andy/D_Drive/Python/XML/alestock_brew_test01.xml" 
         with open(path, "r") as fo:
             tree = ET.ElementTree(file = path)
@@ -747,9 +762,46 @@ class Mainwindow (QtGui.QMainWindow):
                         grainName = grain.tag.replace('_', ' ')
                         a_grain = Used_Grain(grainName, grainData[0], grainData[1], grainData[2])
                         self.used_grain_list.append(a_grain)
-                        self.usedGrain_update()
+                    self.usedGrain_update()
 
+                if elem.tag == 'Hops':
+                    for hop in elem:
+                        hopData = []
+                        for data in hop:
+                            data = data.tag[1:]
+                            hopData.append(data)
+                        hopName = hop.tag.replace('_', ' ')
+                        a_hop = Used_Hop(hopName, hopData[0], hopData[1], hopData[2])
+                        self.used_hop_list.append(a_hop)
+                    self.usedHop_update()
 
+                if elem.tag == 'Yeast':
+                    for yeast in elem:
+                        name = yeast.tag
+                        pkts = yeast.text
+                    name = name.replace('_', ' ')
+                    name = QtGui.QTableWidgetItem(name)
+                    pkts = QtGui.QTableWidgetItem(pkts)
+                    self.ui.yeast_use.setItem(0, 0, name)
+                    self.ui.yeast_use.setItem(0, 1, pkts)
+
+                if elem.tag == 'Temp':
+                    temp = elem.text
+                    temp = QtGui.QTableWidgetItem(temp)
+                    self.ui.brew_params.setItem(0, 0, temp)
+
+                if elem.tag == 'Eff':
+                    eff = elem.text
+                    eff = QtGui.QTableWidgetItem(eff)
+                    self.ui.brew_params.setItem(0, 1, eff)
+
+                if elem.tag == 'Vol':
+                    vol = elem.text
+                    self.vol = vol
+                    vol = QtGui.QTableWidgetItem(vol)
+                    self.ui.brew_params.setItem(0, 2, vol)
+
+        self.loadingBrew = False
 
 
 ################################################################################
@@ -772,11 +824,11 @@ class Grain:
 
 
 class Used_Grain:
-    def __init__(self, name, wgt, extr, ebc):
+    def __init__(self, name, EBC, extr, wgt):
         self.name = name
         self.wgt = wgt
         self.extr = extr
-        self.ebc = ebc
+        self.ebc = EBC
     def get_name(self):
         return self.name
     def get_wgt(self):
