@@ -20,7 +20,6 @@ except AttributeError:
 
 
 #####################################################################################
-#This version uses drag and drop for picking the grain to use
 
 
 class Mainwindow (QtGui.QMainWindow):
@@ -31,8 +30,10 @@ class Mainwindow (QtGui.QMainWindow):
         self.grain_list = []
         self.sel_grain = 0
         self.used_grain_list = []
+        self.grainRecipe_list = []
         self.hop_list = []
         self.used_hop_list = []
+        self.hopRecipe_list = []
         self.yeast_list = []
         self.used_yeast = ""
         self.grain_select = 0
@@ -60,7 +61,7 @@ class Mainwindow (QtGui.QMainWindow):
         self.ui.Save_Data.triggered.connect(self.save_data)
         self.ui.Load_data.triggered.connect(self.load_data)
         self.ui.Save_Brew.triggered.connect(self.save_brew)
-        self.ui.Load_Brew.triggered.connect(self.load_brew)
+        self.ui.Load_Brew.triggered.connect(self.load_recipe)
         #self.ui.button_noteSave.clicked.connect(self.test)
         self.ui.button_startTimer.clicked.connect(self.startTimer)
         self.ui.button_stopTimer.clicked.connect(self.stopTimer)
@@ -140,6 +141,13 @@ class Mainwindow (QtGui.QMainWindow):
         self.reStock()
         self.ui.tabWidget.setCurrentIndex(1)
         self.ui.button_commit.setEnabled(False)
+        plusMinus = QtCore.QChar(0x00B1)
+        self.ui.label_plusMinus.setText(plusMinus)
+        self.ui.label_plusMinus.setGeometry(QtCore.QRect(90, 200, 46, 12))
+        font = self.ui.label_plusMinus.font()
+        font.setPixelSize(15)
+        font.setBold(True)
+        self.ui.label_plusMinus.setFont(font)
 
 
     def use(self):
@@ -342,6 +350,33 @@ class Mainwindow (QtGui.QMainWindow):
 
         self.useGrain()
 
+    def grainRecipe_update (self):
+
+        self.ui.grain_recipe.clearContents()
+        total = 0
+
+        for item in self.grainRecipe_list:
+            pos = self.grainRecipe_list.index(item)
+            name = Used_Grain.get_name(item)
+            wgt = str(Used_Grain.get_wgt(item)) 
+
+            name = QtGui.QTableWidgetItem(name)
+            self.ui.grain_recipe.setItem(pos, 0, name)
+
+            wgt = QtGui.QTableWidgetItem(wgt)
+            self.ui.grain_recipe.setItem(pos, 1, wgt)
+
+            wgt = float(Used_Grain.get_wgt(item))
+            total += wgt
+        print total
+        for item in self.grainRecipe_list:
+            pos = self.grainRecipe_list.index(item)
+            wgt = float(Used_Grain.get_wgt(item))
+            perCent = int((wgt / total) * 100)  
+            perCent = str(perCent)
+
+            perCent = QtGui.QTableWidgetItem(perCent)
+            self.ui.grain_recipe.setItem(pos, 2, perCent)
 
 
     ###########################################################################
@@ -473,6 +508,26 @@ class Mainwindow (QtGui.QMainWindow):
             self.ui.hop_use.setItem(pos, 2, time)
 
         self.useHop()
+
+
+    def hopRecipe_update(self):
+
+        self.ui.hop_recipe.clearContents()
+
+        for item in self.hopRecipe_list:
+            pos = self.hopRecipe_list.index(item)
+            name = Used_Hop.get_name(item)
+            wgt = str(Used_Hop.get_wgt(item)) #tablewidget won't accept float. Gawdnosewhy
+            time = str(Used_Hop.get_time(item))
+
+            name = QtGui.QTableWidgetItem(name)
+            self.ui.hop_recipe.setItem(pos, 0, name)
+
+            wgt = QtGui.QTableWidgetItem(wgt)
+            self.ui.hop_recipe.setItem(pos, 1, wgt)
+
+            time = QtGui.QTableWidgetItem(time)
+            self.ui.hop_recipe.setItem(pos, 2, time)
 
 
     ###########################################################################
@@ -684,6 +739,7 @@ class Mainwindow (QtGui.QMainWindow):
 
         root = ET.Element('Root')
         ingredient = ET.SubElement(root, 'Ingredient')
+        notes = ET.SubElement(root, 'Notes')
         grain = ET.SubElement(ingredient, 'Grain')
         hop = ET.SubElement(ingredient, 'Hops')
         yeast = ET.SubElement(ingredient, 'Yeast')
@@ -692,6 +748,16 @@ class Mainwindow (QtGui.QMainWindow):
         temp = ET.SubElement(params, 'Temp')
         eff = ET.SubElement(params, 'Eff')
         vol = ET.SubElement(params, 'Vol')
+
+        results = ET.SubElement(root, 'Results')
+        EBU = ET.SubElement(results, 'EBU')
+        EBC = ET.SubElement(results, 'EBC')
+        OG = ET.SubElement(results, 'OG')
+
+        procNote = ET.SubElement(notes, 'Process')
+        tastNote = ET.SubElement(notes, 'Tasting')
+        style = ET.SubElement(notes, 'Style')
+        rating = ET.SubElement(notes, 'Rating')
 
         for item in self.used_grain_list:
             name = item.get_name()
@@ -708,9 +774,6 @@ class Mainwindow (QtGui.QMainWindow):
             wgt = "_" + wgt
             wgt = ET.SubElement(name, wgt)
             
-            
-
-
         for item in self.used_hop_list:
             name = item.get_name()
             name = str(name)
@@ -738,6 +801,14 @@ class Mainwindow (QtGui.QMainWindow):
         temp.text = str(self.ui.brew_params.item(0, 0).text())
         eff.text = str(self.ui.brew_params.item(0, 1).text())
         vol.text = str(self.ui.brew_params.item(0, 2).text())
+        EBU.text = str(self.ui.brew_results.item(0, 0).text())
+        EBC.text = str(self.ui.brew_results.item(0, 1).text())
+        OG.text = str(self.ui.brew_results.item(0, 2).text())
+        style.text = str(self.ui.box_style.currentText())
+        rating.text = str(self.ui.rating.value())
+
+        procNote.text = str(self.ui.processNotes.toPlainText())
+        tastNote.text = str(self.ui.tastingNotes.toPlainText())
 
         path =  "/home/andy/D_Drive/Python/XML/alestock_brew_test01.xml" 
         with open(path, "w") as fo:
@@ -745,9 +816,97 @@ class Mainwindow (QtGui.QMainWindow):
             tree.write(fo)
 
 
-    def load_brew(self):
+    def load_recipe(self):
 
         self.loadingBrew = True
+        path =  "/home/andy/D_Drive/Python/XML/alestock_brew_test01.xml" 
+        with open(path, "r") as fo:
+            tree = ET.ElementTree(file = path)
+            root = tree.getroot()
+            for elem in root.iter():
+                if elem.tag == 'Grain':
+                    for grain in elem:
+                        grainData = []
+                        for data in grain:
+                            data = data.tag[1:]
+                            grainData.append(data)
+                        grainName = grain.tag.replace('_', ' ')
+                        a_grain = Used_Grain(grainName, grainData[0], grainData[1], grainData[2])
+                        self.grainRecipe_list.append(a_grain)
+                    self.grainRecipe_update()
+
+                if elem.tag == 'Hops':
+                    for hop in elem:
+                        hopData = []
+                        for data in hop:
+                            data = data.tag[1:]
+                            hopData.append(data)
+                        hopName = hop.tag.replace('_', ' ')
+                        a_hop = Used_Hop(hopName, hopData[0], hopData[1], hopData[2])
+                        self.hopRecipe_list.append(a_hop)
+                    self.hopRecipe_update()
+
+                if elem.tag == 'Yeast':
+                    for yeast in elem:
+                        name = yeast.tag
+                        pkts = yeast.text
+                    name = name.replace('_', ' ')
+                    name = QtGui.QTableWidgetItem(name)
+                    pkts = QtGui.QTableWidgetItem(pkts)
+                    self.ui.recipe_results.setItem(0, 3, name)
+
+                if elem.tag == 'Temp':
+                    temp = elem.text
+                    temp = QtGui.QTableWidgetItem(temp)
+                    self.ui.brew_params.setItem(0, 0, temp)
+
+                if elem.tag == 'Eff':
+                    eff = elem.text
+                    eff = QtGui.QTableWidgetItem(eff)
+                    self.ui.brew_params.setItem(0, 1, eff)
+
+                if elem.tag == 'Vol':
+                    vol = elem.text
+                    vol = QtGui.QTableWidgetItem(vol)
+                    self.ui.brew_params.setItem(0, 2, vol)
+
+                if elem.tag =='Process':
+                    if elem.text != None:
+                        self.ui.processNotes.setPlainText(elem.text) 
+
+                if elem.tag =='Tasting':
+                    if elem.text != None:
+                        self.ui.tastingNotes.setPlainText(elem.text)
+
+                if elem.tag == 'Style':
+                    style = elem.text
+                    index = self.ui.box_style.findText(style)
+                    self.ui.box_style.setCurrentIndex(index)
+
+                if elem.tag == 'Rating':
+                    self.ui.rating.setValue(int(elem.text))
+
+                if elem.tag == 'EBU':
+                    ebu = str(elem.text)
+                    ebu = QtGui.QTableWidgetItem(ebu)
+                    self.ui.recipe_results.setItem(0, 0, ebu)
+
+                if elem.tag == 'EBC':
+                    ebc = str(elem.text)
+                    ebc = QtGui.QTableWidgetItem(ebc)
+                    self.ui.recipe_results.setItem(0, 1, ebc)
+
+                if elem.tag == 'OG':
+                    og = str(elem.text)
+                    og = QtGui.QTableWidgetItem(og)
+                    self.ui.recipe_results.setItem(0, 2, og)
+
+
+        self.loadingBrew = False
+
+
+    def useRecipe():
+
         path =  "/home/andy/D_Drive/Python/XML/alestock_brew_test01.xml" 
         with open(path, "r") as fo:
             tree = ET.ElementTree(file = path)
@@ -785,23 +944,8 @@ class Mainwindow (QtGui.QMainWindow):
                     self.ui.yeast_use.setItem(0, 0, name)
                     self.ui.yeast_use.setItem(0, 1, pkts)
 
-                if elem.tag == 'Temp':
-                    temp = elem.text
-                    temp = QtGui.QTableWidgetItem(temp)
-                    self.ui.brew_params.setItem(0, 0, temp)
 
-                if elem.tag == 'Eff':
-                    eff = elem.text
-                    eff = QtGui.QTableWidgetItem(eff)
-                    self.ui.brew_params.setItem(0, 1, eff)
 
-                if elem.tag == 'Vol':
-                    vol = elem.text
-                    self.vol = vol
-                    vol = QtGui.QTableWidgetItem(vol)
-                    self.ui.brew_params.setItem(0, 2, vol)
-
-        self.loadingBrew = False
 
 
 ################################################################################
