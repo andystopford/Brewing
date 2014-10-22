@@ -51,6 +51,8 @@ class Mainwindow (QtGui.QMainWindow):
         self.brew_filename = None
         self.path = ""
         self.dateList = []
+        self.months = {'Jan':1, 'Feb':2, 'Mar':3, 'Apr':4, 'May':5, 'Jun':6, 'Jul':7, 
+            'Aug':8, 'Sep':9, 'Oct':10, 'Nov':11, 'Dec':12}
         self.ui.button_reStock.setChecked(True)
         self.mode_grp = [self.ui.button_reStock, self.ui.button_use]
 
@@ -65,7 +67,7 @@ class Mainwindow (QtGui.QMainWindow):
         self.ui.Load_data.triggered.connect(self.load_data)
         self.ui.Save_Brew.triggered.connect(self.save_brew)
         self.ui.Load_Brew.triggered.connect(self.load_brew)
-        #self.ui.button_saveNotes.clicked.connect(self.convertDate)
+        self.ui.button_saveNotes.clicked.connect(self.save_brew)
         self.ui.button_startTimer.clicked.connect(self.startTimer)
         self.ui.button_stopTimer.clicked.connect(self.stopTimer)
 
@@ -89,8 +91,13 @@ class Mainwindow (QtGui.QMainWindow):
         self.ui.yeast_use.connect(self.ui.yeast_use, QtCore.SIGNAL
             ("customContextMenuRequested(QPoint)"), self.yeastUse_RClick)
 
+        self.ui.button_search.clicked.connect(self.search)
+        self.ui.search_results.itemClicked.connect(self.load_search)
+
         #Sub-class qt widgets
-        self.calendar_brew = brewCalendar(self)
+        self.calendar_brew = brewCalendar(self, 1045, 473)
+        self.calendar_search = brewCalendar(self, 40, 473)
+        #self.calendar_search.clicked.connect(self.load_brew)
 
 
     ###########################################################################
@@ -155,6 +162,7 @@ class Mainwindow (QtGui.QMainWindow):
         font.setPixelSize(15)
         font.setBold(True)
         self.ui.label_plusMinus.setFont(font)
+        self.hiLightDate()
 
 
     def use(self):
@@ -847,16 +855,18 @@ class Mainwindow (QtGui.QMainWindow):
         print self.grainRecipe_list
 
 
-    def load_brew(self):
-
+    def load_brew(self, name):
+        
         self.loadingBrew = True
-        fname = unicode(QtGui.QFileDialog.getOpenFileName(self))
-        self.brew_filename = os.path.basename(fname)
         self.grainRecipe_list = []
         self.hopRecipe_list = []
 
-        path =  'Brews' + '/' + self.brew_filename 
-        #basename = basename.replace('.xml', '')
+        if name == False:
+            fname = unicode(QtGui.QFileDialog.getOpenFileName(self))
+            self.brew_filename = os.path.basename(fname)
+        else:
+            self.brew_filename = name
+        path =  'Brews' + '/' + self.brew_filename
         self.ui.label_name.setText(self.brew_filename)
         with open(path, "r") as fo:
             tree = ET.ElementTree(file = path)
@@ -1006,19 +1016,92 @@ class Mainwindow (QtGui.QMainWindow):
         mb.setText(msg)
         mb.exec_()
 
+################################################################################
+#Search
+    
+    def hiLightDate(self):
+
+        brewList = []
+
+        for brewFile in os.listdir('Brews'):
+            day = int(brewFile[0:2])
+            month = str(brewFile[2:5])
+            year = int('20'+brewFile[5:7])       
+            numMonth = int(self.months[month])
+            date = QtCore.QDate(year, numMonth, day)
+            brewList.append(date)
+        self.calendar_search.dates(brewList)
+
+
+    
+ 
+
+    def search(self):
+
+        search_word = str(self.ui.search_box.text())
+        result = []
+        rating_list = []
+        rating = int(self.ui.rating_input.value())
+        ratingRange = self.ui.ratingPlusMinus.value()
+
+
+        if rating != 0:
+            for brewFile in os.listdir('Brews'):
+                with open('Brews' + '/' + brewFile) as brew: 
+                    tree = ET.ElementTree(file = brew)               
+                    root = tree.getroot()
+                    for elem in root.iter():
+                        if elem.tag == 'Rating':
+                            brewRating = int(elem.text)
+                            if rating - ratingRange <=  brewRating <= rating + ratingRange:
+                                rating_list.append(brewFile) 
+
+        #now search only the files in rating_list
+            for brewFile in rating_list:
+                with open('Brews' + '/' + brewFile) as brew: 
+                    for line in brew:                    
+                        if search_word.lower() in line.lower():
+                            result.append(brewFile) 
+                            break
+        #condition if rating not entered
+        else:
+            for brewFile in os.listdir('Brews'):
+                    with open('Brews' + '/' + brewFile) as brew: 
+                        for line in brew:                    
+                            if search_word.lower() in line.lower():
+                                result.append(brewFile) 
+                                break
+
+        if result != []:                
+            self.ui.search_results.addItem(search_word)        
+            self.ui.search_results.addItems(result)
+            self.ui.search_results.addItem("")
+        else:
+            self.ui.search_results.addItem(search_word)
+            self.ui.search_results.addItem("Not Found")
+            self.ui.search_results.addItem("")
+
+
+
+
+
+    def load_search(self):
+        basename = self.ui.search_results.currentItem()
+        basename = basename.text()
+        self.load_brew(basename)
+
 
 #################################################################################
 #Brew calendar display
+
     def convertDate(self):
 
         self.dateList = []
         dateString = self.brew_filename
         day = int(dateString[0:2])
-        month = dateString[2:5]
-        year = int('20'+dateString[5:7])
-        months = {'Jan':1, 'Feb':2, 'Mar':3, 'Apr':4, 'May':5, 'Jun':6, 'Jul':7, 
-            'Aug':8, 'Sep':9, 'Oct':10, 'Nov':11, 'Dec':12}
-        numMonth = int(months[month])
+        month = str(dateString[2:5])
+        year = int('20'+dateString[5:7])       
+        numMonth = int(self.months[month])
 
         date = QtCore.QDate()
         num = -1 #use -1 to avoid colouring current day
@@ -1033,20 +1116,36 @@ class Mainwindow (QtGui.QMainWindow):
         self.calendar_brew.dates(self.dateList)
 
 
+    def selectBrew(self, date):
+       
+        day = date.day()
+        month = date.month()
+        month = date.shortMonthName(month)
+        year = date.year()
+        year = str(year - 2000)
+        month = str(month)
+        day = str(day)
+        brew = day + month + year
+        self.load_brew(brew)
+
+
+
 
 class brewCalendar(QtGui.QCalendarWidget):
-    def __init__(self, parent):    
+    def __init__(self, parent, x, y):    
         QtGui.QCalendarWidget.__init__(self, parent)
-        self.setGeometry(QtCore.QRect(1045, 473, 232, 129))
         self.setHorizontalHeaderFormat(QtGui.QCalendarWidget.SingleLetterDayNames)
         self.color = QtGui.QColor(self.palette().color(QtGui.QPalette.Highlight))
         self.color.setRgb(255,0,0)
         self.color.setAlpha(64)
         self.selectionChanged.connect(self.updateCells)
-        self.selectionChanged.connect(self.message)
+        self.clicked.connect(self.cellClicked)
         self.dateList = []
         self.setGridVisible(True)
+        self.setPos(x, y)
 
+    def setPos(self, x, y):
+        self.setGeometry(QtCore.QRect(x, y, 232, 129))
 
     def paintCell(self, painter, rect, date):
         QtGui.QCalendarWidget.paintCell(self, painter, rect, date)
@@ -1059,8 +1158,10 @@ class brewCalendar(QtGui.QCalendarWidget):
         self.updateCells()
 
 
-    def message(self):
-        print "changed"
+    def cellClicked(self, date):        
+        Mainwindow.selectBrew(myapp, date)
+
+
 
 
 ################################################################################
