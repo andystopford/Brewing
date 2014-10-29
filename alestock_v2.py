@@ -1,8 +1,10 @@
 #!/usr/bin/python
 import sys, time, math, os.path
 import xml.etree.cElementTree as ET
+from classes import * #Grain, Used_Grain, Hop, Used_Hop, Yeast, brewCalendar, MessageBox
 from PyQt4 import QtCore, QtGui
 from alestockUI_v2 import Ui_MainWindow
+
 
 try:
     _fromUtf8 = QtCore.QString.fromUtf8
@@ -48,7 +50,9 @@ class Mainwindow (QtGui.QMainWindow):
         self.pkt_use = 3 
         self.loadingBrew = False
         self.dirty = False
+        self.plusMinus = QtCore.QChar(0x00B1)
         self.brew_filename = None
+        self.recipe_filename = None
         self.path = ""
         self.dateList = []
         self.months = {'Jan':1, 'Feb':2, 'Mar':3, 'Apr':4, 'May':5, 'Jun':6, 'Jul':7, 
@@ -66,17 +70,18 @@ class Mainwindow (QtGui.QMainWindow):
         self.ui.Save_Data.triggered.connect(self.save_data)
         self.ui.Load_data.triggered.connect(self.load_data)
         self.ui.Save_Brew.triggered.connect(self.save_brew)
-        self.ui.Load_Brew.triggered.connect(self.load_brew)
-        self.ui.button_saveNotes.clicked.connect(self.save_brew)
+        self.ui.button_saveNotes.clicked.connect(self.save_notes)
         self.ui.button_startTimer.clicked.connect(self.startTimer)
         self.ui.button_stopTimer.clicked.connect(self.stopTimer)
+        self.ui.button_writeNotes.clicked.connect(self.writeNotes)
 
         self.ui.button_use.clicked.connect(self.use)
         self.ui.button_reStock.clicked.connect(self.reStock)
         self.ui.button_useRecipe.clicked.connect(self.useRecipe)
 
-        self.ui.button_grainUseUpdate.clicked.connect(self.useGrain)
-        self.ui.button_hopUseUpdate.clicked.connect(self.useHop)
+        #self.ui.button_saveBrew.clicked.connect(self.save_brew)
+        self.ui.button_saveBrew.clicked.connect(self.save_brew_test)
+
         self.ui.button_commit.clicked.connect(self.commit)
 
         self.ui.grain_use.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
@@ -94,10 +99,14 @@ class Mainwindow (QtGui.QMainWindow):
         self.ui.button_search.clicked.connect(self.search)
         self.ui.search_results.itemClicked.connect(self.load_search)
 
+        self.textEd = textEdit(self)
+
+
         #Sub-class qt widgets
         self.calendar_brew = brewCalendar(self, 1045, 473)
         self.calendar_search = brewCalendar(self, 40, 473)
-        #self.calendar_search.clicked.connect(self.load_brew)
+        self.calendar_search.clicked.connect(self.cellClicked)
+        self.saveDialogue = saveDialogue(self)
 
 
     ###########################################################################
@@ -125,7 +134,7 @@ class Mainwindow (QtGui.QMainWindow):
         mb = MessageBox()
 
         if QtCore.QTime.currentTime() >= self.alarm_time:
-            self.stop_timer()            
+            self.stopTimer()            
             mb.setText("Finished")
             mb.exec_()
        
@@ -155,14 +164,14 @@ class Mainwindow (QtGui.QMainWindow):
         self.reStock()
         self.ui.tabWidget.setCurrentIndex(1)
         self.ui.button_commit.setEnabled(False)
-        plusMinus = QtCore.QChar(0x00B1)
-        self.ui.label_plusMinus.setText(plusMinus)
+        self.ui.label_plusMinus.setText(self.plusMinus)
         self.ui.label_plusMinus.setGeometry(QtCore.QRect(90, 200, 46, 12))
         font = self.ui.label_plusMinus.font()
         font.setPixelSize(15)
-        font.setBold(True)
         self.ui.label_plusMinus.setFont(font)
+        self.ui.label_brewName.setText("")
         self.hiLightDate()
+ 
 
 
     def use(self):
@@ -200,6 +209,20 @@ class Mainwindow (QtGui.QMainWindow):
         self.ui.yeast_stock.setEditTriggers(QtGui.QAbstractItemView.DoubleClicked)
         self.ui.yeast_use.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)
         self.ui.yeast_use.setAcceptDrops(False)
+
+
+    def keyPressEvent(self, qKeyEvent):
+
+        """ Triggers calculation of used items and sorts tables to 
+        eliminate blank lines. ?Bug: if kg./grams/time not all filled 
+        entry is removed """
+
+        if qKeyEvent.key() == QtCore.Qt.Key_Return: 
+            self.useGrain()
+            self.usedGrain_update()
+            self.useHop()
+            self.usedHop_update()
+
     ###########################################################################
     # Grain
 
@@ -210,14 +233,15 @@ class Mainwindow (QtGui.QMainWindow):
 
         self.grain_list = []        
         for row in xrange(self.ui.grain_stock.rowCount()):
-            if self.ui.grain_stock.item(row,0) != None:                
-                name = self.ui.grain_stock.item(row,0).text()                
-                ebc = self.ui.grain_stock.item(row,1).text() 
-                extr = self.ui.grain_stock.item(row,2).text()             
-                wgt = self.ui.grain_stock.item(row,3).text()
-                a_grain = Grain(name, ebc, extr, wgt)
-                if name != "":
-                    self.grain_list.append(a_grain)
+            if self.ui.grain_stock.item(row,0) != None:
+                if self.ui.grain_stock.item(row,0).text() != "":                
+                    name = self.ui.grain_stock.item(row,0).text()                
+                    ebc = self.ui.grain_stock.item(row,1).text() 
+                    extr = self.ui.grain_stock.item(row,2).text()             
+                    wgt = self.ui.grain_stock.item(row,3).text()
+                    a_grain = Grain(name, ebc, extr, wgt)
+                    if name != "":
+                        self.grain_list.append(a_grain)
 
         num = -1 + len(self.grain_list)
         if len(self.grain_list) > 5:
@@ -254,7 +278,6 @@ class Mainwindow (QtGui.QMainWindow):
             self.ui.grain_stock.setItem(pos, 3, qty)
 
 
-
     def useGrain(self):
 
         total = 0
@@ -263,26 +286,27 @@ class Mainwindow (QtGui.QMainWindow):
             self.used_grain_list = []
             stockList = []           
             for row in xrange(self.ui.grain_use.rowCount()):
-                if self.ui.grain_use.item(row,0) != None:                
-                    name = self.ui.grain_use.item(row,0).text()
-                    wgt = float(self.ui.grain_use.item(row,1).text())
-                    for item in self.grain_list:
-                        if name == item.get_name():
-                            stockName = item.get_name()
-                            stockList.append(stockName) 
-                            extr = item.get_extr()
-                            ebc = item.get_ebc()
-                    if name not in stockList:
-                        self.noStock("Warning: "+name+" not in stock")
-                        self.ui.grain_use.removeRow(row)
-                    else:
-                        total += wgt              
-                        a_used_grain = Used_Grain(name, ebc, extr, wgt)
-                        self.used_grain_list.append(a_used_grain)
+                if self.ui.grain_use.item(row,0) != None: 
+                    if self.ui.grain_use.item(row,1) != None:               
+                        name = self.ui.grain_use.item(row,0).text()
+                        wgt = float(self.ui.grain_use.item(row,1).text())
+                        for item in self.grain_list:
+                            if name == item.get_name():
+                                stockName = item.get_name()
+                                stockList.append(stockName) 
+                                extr = item.get_extr()
+                                ebc = item.get_ebc()
+                        if name not in stockList:
+                            self.noStock("Warning: "+name+" not in stock")
+                            self.ui.grain_use.removeRow(row)
+                        else:
+                            total += wgt              
+                            a_used_grain = Used_Grain(name, ebc, extr, wgt)
+                            self.used_grain_list.append(a_used_grain)
         else:
             for item in self.used_grain_list:
                 wgt = float(item.get_wgt())
-                total += wgt
+        #       total += wgt
 
         if total > 0:   # Calculate percentages in table
             for item in self.used_grain_list:
@@ -292,6 +316,7 @@ class Mainwindow (QtGui.QMainWindow):
                 perCent = str(perCent)
                 perCent = QtGui.QTableWidgetItem(perCent)
                 self.ui.grain_use.setItem(pos, 2, perCent)
+
          
         self.ui.grain_use.clearSelection()              
         self.grain_infoCalc()
@@ -340,6 +365,7 @@ class Mainwindow (QtGui.QMainWindow):
 
 
     def deleteUsedGrain(self):
+
         #Get the value in the right-clicked cell
         row = self.ui.grain_use.currentRow()
         column = self.ui.grain_use.currentColumn()
@@ -406,13 +432,14 @@ class Mainwindow (QtGui.QMainWindow):
 
         self.hop_list = []
         for row in xrange(self.ui.hop_stock.rowCount()):
-            if self.ui.hop_stock.item(row,0) != None:                
-                name = self.ui.hop_stock.item(row,0).text()                
-                alpha = self.ui.hop_stock.item(row,1).text()            
-                wgt = self.ui.hop_stock.item(row,2).text()
-                a_hop = Hop(name, alpha, wgt)
-                if name != "":
-                    self.hop_list.append(a_hop)
+            if self.ui.hop_stock.item(row,0) != None: 
+                if self.ui.hop_stock.item(row,0).text() != "":               
+                    name = self.ui.hop_stock.item(row,0).text()                
+                    alpha = self.ui.hop_stock.item(row,1).text()            
+                    wgt = self.ui.hop_stock.item(row,2).text()
+                    a_hop = Hop(name, alpha, wgt)
+                    if name != "":
+                        self.hop_list.append(a_hop)
         num = -1 + len(self.hop_list)
         if len(self.hop_list) > 5:
             self.ui.hop_stock.setRowCount(num + 1)
@@ -447,23 +474,25 @@ class Mainwindow (QtGui.QMainWindow):
             stockList = []
 
             for row in xrange(self.ui.hop_use.rowCount()):
-                if self.ui.hop_use.item(row,0) != None:                
-                    name = self.ui.hop_use.item(row,0).text()
-                    wgt = float(self.ui.hop_use.item(row,1).text())
-                    time = float(self.ui.hop_use.item(row,2).text())
-                    for item in self.hop_list:
-                        if name == item.get_name():
-                            stockName = item.get_name()
-                            stockList.append(stockName)
-                            alpha = item.get_alpha()
-                    if name not in stockList:
-                        print name
-                        self.noStock("Warning: " +name + " not in stock")
-                        self.ui.hop_use.removeRow(row)
-                    else:
-                        total += wgt               
-                        a_used_hop = Used_Hop(name, alpha, wgt, time)
-                        self.used_hop_list.append(a_used_hop)
+                if self.ui.hop_use.item(row,0) != None:
+                    if self.ui.hop_use.item(row,1) != None: 
+                        if self.ui.hop_use.item(row,2) != None:               
+                            name = self.ui.hop_use.item(row,0).text()
+                            wgt = float(self.ui.hop_use.item(row,1).text())
+                            time = float(self.ui.hop_use.item(row,2).text())
+                            for item in self.hop_list:
+                                if name == item.get_name():
+                                    stockName = item.get_name()
+                                    stockList.append(stockName)
+                                    alpha = item.get_alpha()
+                            if name not in stockList:
+                                print name
+                                self.noStock("Warning: " +name + " not in stock")
+                                self.ui.hop_use.removeRow(row)
+                            else:
+                                total += wgt               
+                                a_used_hop = Used_Hop(name, alpha, wgt, time)
+                                self.used_hop_list.append(a_used_hop)
 
         self.ui.hop_use.clearSelection() 
         self.hop_infoCalc()
@@ -541,7 +570,7 @@ class Mainwindow (QtGui.QMainWindow):
         for item in self.hopRecipe_list:
             pos = self.hopRecipe_list.index(item)
             name = Used_Hop.get_name(item)
-            wgt = str(Used_Hop.get_wgt(item)) #tablewidget won't accept float. Gawdnosewhy
+            wgt = str(Used_Hop.get_wgt(item)) 
             time = str(Used_Hop.get_time(item))
 
             name = QtGui.QTableWidgetItem(name)
@@ -561,12 +590,13 @@ class Mainwindow (QtGui.QMainWindow):
 
         self.yeast_list = []
         for row in xrange(self.ui.yeast_stock.rowCount()):
-            if self.ui.yeast_stock.item(row,0) != None:                
-                yeast_name = self.ui.yeast_stock.item(row,0).text()                          
-                yeast_qty = self.ui.yeast_stock.item(row,1).text()
-                a_yeast = Yeast(yeast_name, yeast_qty)
-                if yeast_name != "":
-                    self.yeast_list.append(a_yeast)
+            if self.ui.yeast_stock.item(row,0) != None:
+                if self.ui.yeast_stock.item(row,0).text() != "":                
+                    yeast_name = self.ui.yeast_stock.item(row,0).text()                          
+                    yeast_qty = self.ui.yeast_stock.item(row,1).text()
+                    a_yeast = Yeast(yeast_name, yeast_qty)
+                    if yeast_name != "":
+                        self.yeast_list.append(a_yeast)
         num = -1 + len(self.yeast_list)
         if len(self.yeast_list) > 5:
             self.ui.yeast_stock.setRowCount(num + 1)
@@ -611,6 +641,8 @@ class Mainwindow (QtGui.QMainWindow):
             self.ui.yeast_stock.setItem(pos, 1, qty)
 
     ############################################################################
+
+
     def commit_enable(self):
         self.ui.button_commit.setEnabled(True)
 
@@ -665,7 +697,8 @@ class Mainwindow (QtGui.QMainWindow):
                 self.ui.button_commit.setEnabled(False)                  
 
 
-    ###########################################################################                
+    ########################################################################### 
+    # Save/Load data               
 
     def save_data(self):
 
@@ -711,8 +744,7 @@ class Mainwindow (QtGui.QMainWindow):
             pkts = "_" + pkts
             pkts = ET.SubElement(name, pkts)
 
-        #basename = "alestock_XML_test01.xml"
-        path =  "/home/andy/D_Drive/Python/XML/alestock_XML_test01.xml" 
+        path =  "./stockData.xml" 
         with open(path, "w") as fo:
             tree = ET.ElementTree(root)
             tree.write(fo)
@@ -720,8 +752,8 @@ class Mainwindow (QtGui.QMainWindow):
 
     def load_data(self):
        
-        path =  "/home/andy/D_Drive/Python/XML/alestock_XML_test01.xml"
-        with open(path, "r") as fo:
+        path =  "./stockData.xml"
+        with open(path, "a") as fo:
             tree = ET.ElementTree(file = path)
             root = tree.getroot()
             for elem in root.iter():
@@ -758,13 +790,31 @@ class Mainwindow (QtGui.QMainWindow):
                         self.yeast_list.append(a_yeast)
                     self.yeastTable_update()
 
+################################################################################
+#Save/Load brew
+
+    def writeNotes(self):
+
+        self.textEd.setGeometry(150, 475, 200, 200)
+        self.textEd.setWindowTitle("Process Notes")    
+        self.textEd.show()
+
+
+    def keepNotes(self, text):
+        print text
+
+    def save_brew_test(self):
+
+        self.saveDialogue.setGeometry(780, 290, 400, 180)
+        self.saveDialogue.show()
+
 
     def save_brew(self):
 
-        if self.brew_filename is None:
+        if self.brew_filename == None:
             self.save_brew_as()
 
-        else:       
+        else:  
             root = ET.Element('Root')
             ingredient = ET.SubElement(root, 'Ingredient')
             notes = ET.SubElement(root, 'Notes')
@@ -832,15 +882,17 @@ class Mainwindow (QtGui.QMainWindow):
             EBU.text = str(self.ui.brew_results.item(0, 0).text())
             EBC.text = str(self.ui.brew_results.item(0, 1).text())
             OG.text = str(self.ui.brew_results.item(0, 2).text())
-            style.text = str(self.ui.box_style.currentText())
-            rating.text = str(self.ui.rating.value())
+            #style.text = str(self.ui.box_style.currentText())
+            #rating.text = str(self.ui.rating.value())
 
-            procNote.text = str(self.ui.processNotes.toPlainText())
-            tastNote.text = str(self.ui.tastingNotes.toPlainText())
+            procNote.text = str(self.textEd.txt.toPlainText())
 
             with open(self.brew_filename, "w") as fo:
+                fname = os.path.basename(self.brew_filename)
+                self.ui.label_brewName.setText(fname)
                 tree = ET.ElementTree(root)
                 tree.write(fo)
+
 
     def save_brew_as(self):
 
@@ -851,8 +903,24 @@ class Mainwindow (QtGui.QMainWindow):
         self.brew_filename = fname 
         self.save_brew()
 
+
     def save_notes(self):
-        print self.grainRecipe_list
+
+
+        style = str(self.ui.box_style.currentText())
+        taste = self.ui.tastingNotes.toPlainText()
+        rating = str(self.ui.rating.value())
+        path =  'Brews' + '/' + self.recipe_filename
+        tree = ET.parse(path)
+        root = tree.getroot()
+        for elem in root.iter('Style'):
+            elem.text = style
+        for elem in root.iter('Tasting'):
+            elem.text =  str(taste)
+        for elem in root.iter('Rating'):
+            elem.text = rating
+        tree.write(path)
+
 
 
     def load_brew(self, name):
@@ -863,11 +931,11 @@ class Mainwindow (QtGui.QMainWindow):
 
         if name == False:
             fname = unicode(QtGui.QFileDialog.getOpenFileName(self))
-            self.brew_filename = os.path.basename(fname)
+            self.recipe_filename = os.path.basename(fname)
         else:
-            self.brew_filename = name
-        path =  'Brews' + '/' + self.brew_filename
-        self.ui.label_name.setText(self.brew_filename)
+            self.recipe_filename = name
+        path =  'Brews' + '/' + self.recipe_filename
+        self.ui.label_name.setText(self.recipe_filename)
         with open(path, "r") as fo:
             tree = ET.ElementTree(file = path)
             root = tree.getroot()
@@ -912,12 +980,14 @@ class Mainwindow (QtGui.QMainWindow):
                         self.ui.tastingNotes.setPlainText(elem.text)
 
                 if elem.tag == 'Style':
-                    style = elem.text
-                    index = self.ui.box_style.findText(style)
-                    self.ui.box_style.setCurrentIndex(index)
+                    if elem.text != None:
+                        style = elem.text
+                        index = self.ui.box_style.findText(style)
+                        self.ui.box_style.setCurrentIndex(index)
 
                 if elem.tag == 'Rating':
-                    self.ui.rating.setValue(int(elem.text))
+                    if elem.text != None:
+                        self.ui.rating.setValue(int(elem.text))
 
                 if elem.tag == 'EBU':
                     ebu = str(elem.text)
@@ -940,6 +1010,7 @@ class Mainwindow (QtGui.QMainWindow):
                     self.ui.recipe_results.setItem(0, 3, temp)
 
         self.convertDate()
+        #self.recipe_filename = None
         self.loadingBrew = False
 
 
@@ -1007,6 +1078,7 @@ class Mainwindow (QtGui.QMainWindow):
                 pkts = QtGui.QTableWidgetItem(pkts)
                 self.ui.yeast_use.setItem(0, 0, yeast)
                 self.ui.yeast_use.setItem(0, 1, pkts)
+            self.ui.label_brewName.setText("Not Saved")
             self.use()
        
 
@@ -1024,17 +1096,15 @@ class Mainwindow (QtGui.QMainWindow):
         brewList = []
 
         for brewFile in os.listdir('Brews'):
-            day = int(brewFile[0:2])
-            month = str(brewFile[2:5])
-            year = int('20'+brewFile[5:7])       
-            numMonth = int(self.months[month])
-            date = QtCore.QDate(year, numMonth, day)
-            brewList.append(date)
+            if not brewFile.startswith('.'): #filter unix hidden files
+                day = int(brewFile[0:2])
+                month = str(brewFile[2:5])
+                year = int('20'+brewFile[5:7])       
+                numMonth = int(self.months[month])
+                date = QtCore.QDate(year, numMonth, day)
+                brewList.append(date)
         self.calendar_search.dates(brewList)
 
-
-    
- 
 
     def search(self):
 
@@ -1047,14 +1117,15 @@ class Mainwindow (QtGui.QMainWindow):
 
         if rating != 0:
             for brewFile in os.listdir('Brews'):
-                with open('Brews' + '/' + brewFile) as brew: 
-                    tree = ET.ElementTree(file = brew)               
-                    root = tree.getroot()
-                    for elem in root.iter():
-                        if elem.tag == 'Rating':
-                            brewRating = int(elem.text)
-                            if rating - ratingRange <=  brewRating <= rating + ratingRange:
-                                rating_list.append(brewFile) 
+                if not brewFile.startswith('.'): #filter unix hidden files
+                    with open('Brews' + '/' + brewFile) as brew: 
+                        tree = ET.parse(brew)              
+                        root = tree.getroot()
+                        for elem in root.iter():
+                            if elem.tag == 'Rating':
+                                brewRating = int(elem.text)
+                                if rating - ratingRange <=  brewRating <= rating + ratingRange:
+                                    rating_list.append(brewFile) 
 
         #now search only the files in rating_list
             for brewFile in rating_list:
@@ -1066,23 +1137,29 @@ class Mainwindow (QtGui.QMainWindow):
         #condition if rating not entered
         else:
             for brewFile in os.listdir('Brews'):
+                if not brewFile.startswith('.'):
                     with open('Brews' + '/' + brewFile) as brew: 
                         for line in brew:                    
                             if search_word.lower() in line.lower():
                                 result.append(brewFile) 
                                 break
 
-        if result != []:                
-            self.ui.search_results.addItem(search_word)        
+        if result != []: 
+            if search_word == "":
+                filler = ''
+            else:
+                filler = ' '
+            heading =  search_word + filler + '(' + 'Rating' + ' ' + str(rating) + ')'
+            heading = QtGui.QListWidgetItem(heading)
+            heading.setFont(QtGui.QFont('Sans Serif', 9, QtGui.QFont.Bold))  
+            self.ui.search_results.addItem(heading)
+            #self.ui.search_results.addItem(self.plusMinus)        
             self.ui.search_results.addItems(result)
             self.ui.search_results.addItem("")
         else:
             self.ui.search_results.addItem(search_word)
             self.ui.search_results.addItem("Not Found")
             self.ui.search_results.addItem("")
-
-
-
 
 
     def load_search(self):
@@ -1097,7 +1174,7 @@ class Mainwindow (QtGui.QMainWindow):
     def convertDate(self):
 
         self.dateList = []
-        dateString = self.brew_filename
+        dateString = self.recipe_filename
         day = int(dateString[0:2])
         month = str(dateString[2:5])
         year = int('20'+dateString[5:7])       
@@ -1129,147 +1206,21 @@ class Mainwindow (QtGui.QMainWindow):
         self.load_brew(brew)
 
 
-
-
-class brewCalendar(QtGui.QCalendarWidget):
-    def __init__(self, parent, x, y):    
-        QtGui.QCalendarWidget.__init__(self, parent)
-        self.setHorizontalHeaderFormat(QtGui.QCalendarWidget.SingleLetterDayNames)
-        self.color = QtGui.QColor(self.palette().color(QtGui.QPalette.Highlight))
-        self.color.setRgb(255,0,0)
-        self.color.setAlpha(64)
-        self.selectionChanged.connect(self.updateCells)
-        self.clicked.connect(self.cellClicked)
-        self.dateList = []
-        self.setGridVisible(True)
-        self.setPos(x, y)
-
-    def setPos(self, x, y):
-        self.setGeometry(QtCore.QRect(x, y, 232, 129))
-
-    def paintCell(self, painter, rect, date):
-        QtGui.QCalendarWidget.paintCell(self, painter, rect, date)
-        if date in self.dateList:
-            painter.fillRect(rect, self.color)
-            
-
-    def dates(self, dateList):
-        self.dateList = dateList
-        self.updateCells()
-
-
     def cellClicked(self, date):        
-        Mainwindow.selectBrew(myapp, date)
+         self.selectBrew(date)
+
+
 
 
 
 
 ################################################################################
-class Grain:
-    def __init__(self, name, EBC, extr, wgt):
-        self.name = name
-        self.ebc = EBC
-        self.extr = extr
-        self.wgt = wgt
-    def get_name(self):
-        return self.name
-    def get_ebc(self):
-        return self.ebc
-    def get_extr(self):
-        return self.extr
-    def get_wgt(self):
-        return self.wgt
-    def __str__(self):
-        return (self.name)
-
-
-class Used_Grain:
-    def __init__(self, name, EBC, extr, wgt):
-        self.name = name
-        self.wgt = wgt
-        self.extr = extr
-        self.ebc = EBC
-    def get_name(self):
-        return self.name
-    def get_wgt(self):
-        return self.wgt
-    def get_extr(self):
-        return self.extr
-    def get_ebc(self):
-        return self.ebc
-    def __str__(self):
-        return (self.name)
-
-
-class Hop:
-    def __init__(self, name, alpha, wgt):
-        self.name = name
-        self.alpha = alpha
-        self.wgt = wgt
-    def get_name(self):
-        return self.name
-    def get_alpha(self):
-        return self.alpha
-    def get_wgt(self):
-        return self.wgt
-
-
-class Used_Hop:
-    def __init__(self, name, alpha, wgt, time):
-        self.name = name
-        self.wgt = wgt
-        self.alpha = alpha
-        self.time = time
-    def get_name(self):
-        return self.name
-    def get_wgt(self):
-        return self.wgt
-    def get_alpha(self):
-        return self.alpha
-    def get_time(self):
-        return self.time
-    def __str__(self):
-        return (self.name)
-
-
-class Yeast:
-    def __init__(self, name, pkts):
-        self.name = name
-        self.pkts = pkts
-    def get_name(self):
-        return self.name
-    def get_pkts(self):
-        return self.pkts
-
-
-class MessageBox(QtGui.QMessageBox):
-    def __init__(self):
-        QtGui.QMessageBox.__init__(self)
-        self.setSizeGripEnabled(True)
-
-    def event(self, e):
-        result = QtGui.QMessageBox.event(self, e)
-        
-        self.setMinimumHeight(0)
-        self.setMaximumHeight(16777215)
-        self.setMinimumWidth(300)
-        self.setMaximumWidth(16777215)
-        self.setSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
-
-        textEdit = self.findChild(QtGui.QTextEdit)
-        if textEdit != None :
-            textEdit.setMinimumHeight(0)
-            textEdit.setMaximumHeight(16777215)
-            textEdit.setMinimumWidth(0)
-            textEdit.setMaximumWidth(16777215)
-            textEdit.setSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
-        return result
 
 
 if __name__ == "__main__":
     app = QtGui.QApplication(sys.argv)
     myapp = Mainwindow()
     myapp.show()
-    #myapp.load_data()
+    myapp.load_data()
     myapp.initParams()
     sys.exit(app.exec_())  
