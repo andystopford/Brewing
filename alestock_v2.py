@@ -51,7 +51,6 @@ class Mainwindow (QtGui.QMainWindow):
         self.loadingBrew = False
         self.dirty = False
         self.plusMinus = QtCore.QChar(0x00B1)
-        self.brew_filename = None
         self.recipe_filename = None
         self.path = ""
         self.dateList = []
@@ -74,14 +73,10 @@ class Mainwindow (QtGui.QMainWindow):
         self.ui.button_startTimer.clicked.connect(self.startTimer)
         self.ui.button_stopTimer.clicked.connect(self.stopTimer)
         self.ui.button_writeNotes.clicked.connect(self.writeNotes)
-
         self.ui.button_use.clicked.connect(self.use)
         self.ui.button_reStock.clicked.connect(self.reStock)
         self.ui.button_useRecipe.clicked.connect(self.useRecipe)
-
-        #self.ui.button_saveBrew.clicked.connect(self.save_brew)
-        self.ui.button_saveBrew.clicked.connect(self.save_brew_test)
-
+        self.ui.button_saveBrew.clicked.connect(self.openSaveDlg)
         self.ui.button_commit.clicked.connect(self.commit)
 
         self.ui.grain_use.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
@@ -99,15 +94,12 @@ class Mainwindow (QtGui.QMainWindow):
         self.ui.button_search.clicked.connect(self.search)
         self.ui.search_results.itemClicked.connect(self.load_search)
 
+        #Sub-classed qt widgets, etc
         self.textEd = textEdit(self)
-
-
-        #Sub-class qt widgets
         self.calendar_brew = brewCalendar(self, 1045, 473)
         self.calendar_search = brewCalendar(self, 40, 473)
         self.calendar_search.clicked.connect(self.cellClicked)
         self.saveDialogue = saveDialogue(self)
-
 
     ###########################################################################
     
@@ -172,7 +164,6 @@ class Mainwindow (QtGui.QMainWindow):
         self.ui.label_brewName.setText("")
         self.hiLightDate()
  
-
 
     def use(self):
 
@@ -316,7 +307,6 @@ class Mainwindow (QtGui.QMainWindow):
                 perCent = str(perCent)
                 perCent = QtGui.QTableWidgetItem(perCent)
                 self.ui.grain_use.setItem(pos, 2, perCent)
-
          
         self.ui.grain_use.clearSelection()              
         self.grain_infoCalc()
@@ -644,7 +634,9 @@ class Mainwindow (QtGui.QMainWindow):
 
 
     def commit_enable(self):
+
         self.ui.button_commit.setEnabled(True)
+
 
     def commit(self):
 
@@ -800,112 +792,93 @@ class Mainwindow (QtGui.QMainWindow):
         self.textEd.show()
 
 
-    def keepNotes(self, text):
-        print text
-
-    def save_brew_test(self):
+    def openSaveDlg(self):
 
         self.saveDialogue.setGeometry(780, 290, 400, 180)
         self.saveDialogue.show()
 
 
-    def save_brew(self):
+    def save_brew(self, fname):
 
-        if self.brew_filename == None:
-            self.save_brew_as()
+        root = ET.Element('Root')
+        ingredient = ET.SubElement(root, 'Ingredient')
+        notes = ET.SubElement(root, 'Notes')
+        grain = ET.SubElement(ingredient, 'Grain')
+        hop = ET.SubElement(ingredient, 'Hops')
+        yeast = ET.SubElement(ingredient, 'Yeast')
 
-        else:  
-            root = ET.Element('Root')
-            ingredient = ET.SubElement(root, 'Ingredient')
-            notes = ET.SubElement(root, 'Notes')
-            grain = ET.SubElement(ingredient, 'Grain')
-            hop = ET.SubElement(ingredient, 'Hops')
-            yeast = ET.SubElement(ingredient, 'Yeast')
+        params = ET.SubElement(root, 'Params')
+        temp = ET.SubElement(params, 'Temp')
+        eff = ET.SubElement(params, 'Eff')
+        vol = ET.SubElement(params, 'Vol')
 
-            params = ET.SubElement(root, 'Params')
-            temp = ET.SubElement(params, 'Temp')
-            eff = ET.SubElement(params, 'Eff')
-            vol = ET.SubElement(params, 'Vol')
+        results = ET.SubElement(root, 'Results')
+        EBU = ET.SubElement(results, 'EBU')
+        EBC = ET.SubElement(results, 'EBC')
+        OG = ET.SubElement(results, 'OG')
 
-            results = ET.SubElement(root, 'Results')
-            EBU = ET.SubElement(results, 'EBU')
-            EBC = ET.SubElement(results, 'EBC')
-            OG = ET.SubElement(results, 'OG')
+        procNote = ET.SubElement(notes, 'Process')
+        tastNote = ET.SubElement(notes, 'Tasting')
+        style = ET.SubElement(notes, 'Style')
+        rating = ET.SubElement(notes, 'Rating')
 
-            procNote = ET.SubElement(notes, 'Process')
-            tastNote = ET.SubElement(notes, 'Tasting')
-            style = ET.SubElement(notes, 'Style')
-            rating = ET.SubElement(notes, 'Rating')
+        for item in self.used_grain_list:
+            name = item.get_name()
+            name = str(name)
+            name = name.replace(' ', '_')
+            name = ET.SubElement(grain, name)
+            ebc = str(item.get_ebc())
+            ebc = "_" + ebc
+            ebc = ET.SubElement(name, ebc)
+            extr = str(item.get_extr())
+            extr = "_" + extr
+            extr = ET.SubElement(name, extr)
+            wgt = str(item.get_wgt())
+            wgt = "_" + wgt
+            wgt = ET.SubElement(name, wgt)
+            
+        for item in self.used_hop_list:
+            name = item.get_name()
+            name = str(name)
+            name = name.replace(' ', '_')
+            name = ET.SubElement(hop, name)
+            alpha = str(item.get_alpha())
+            alpha = "_" + alpha
+            alpha = ET.SubElement(name, alpha)
+            wgt = str(item.get_wgt())
+            wgt = "_" + wgt
+            wgt = ET.SubElement(name, wgt)
+            time = str(item.get_time())
+            time = "_" + time
+            time = ET.SubElement(name, time)
 
-            for item in self.used_grain_list:
-                name = item.get_name()
-                name = str(name)
-                name = name.replace(' ', '_')
-                name = ET.SubElement(grain, name)
-                ebc = str(item.get_ebc())
-                ebc = "_" + ebc
-                ebc = ET.SubElement(name, ebc)
-                extr = str(item.get_extr())
-                extr = "_" + extr
-                extr = ET.SubElement(name, extr)
-                wgt = str(item.get_wgt())
-                wgt = "_" + wgt
-                wgt = ET.SubElement(name, wgt)
-                
-            for item in self.used_hop_list:
-                name = item.get_name()
-                name = str(name)
-                name = name.replace(' ', '_')
-                name = ET.SubElement(hop, name)
-                alpha = str(item.get_alpha())
-                alpha = "_" + alpha
-                alpha = ET.SubElement(name, alpha)
-                wgt = str(item.get_wgt())
-                wgt = "_" + wgt
-                wgt = ET.SubElement(name, wgt)
-                time = str(item.get_time())
-                time = "_" + time
-                time = ET.SubElement(name, time)
+        usedYeast = self.ui.yeast_use.item(0, 0).text()
+        usedYeast = str(usedYeast)
+        usedYeast = usedYeast.replace(' ', '_')
+        usedYeast = ET.SubElement(yeast, usedYeast)
 
-            usedYeast = self.ui.yeast_use.item(0, 0).text()
-            usedYeast = str(usedYeast)
-            usedYeast = usedYeast.replace(' ', '_')
-            usedYeast = ET.SubElement(yeast, usedYeast)
+        pkts = self.pkt_use
+        pkts = str(pkts)
+        usedYeast.text = pkts
 
-            pkts = self.pkt_use
-            pkts = str(pkts)
-            usedYeast.text = pkts
-
-            temp.text = str(self.ui.brew_params.item(0, 0).text())
-            eff.text = str(self.ui.brew_params.item(0, 1).text())
-            vol.text = str(self.ui.brew_params.item(0, 2).text())
-            EBU.text = str(self.ui.brew_results.item(0, 0).text())
-            EBC.text = str(self.ui.brew_results.item(0, 1).text())
-            OG.text = str(self.ui.brew_results.item(0, 2).text())
-            #style.text = str(self.ui.box_style.currentText())
-            #rating.text = str(self.ui.rating.value())
-
-            procNote.text = str(self.textEd.txt.toPlainText())
-
-            with open(self.brew_filename, "w") as fo:
-                fname = os.path.basename(self.brew_filename)
-                self.ui.label_brewName.setText(fname)
-                tree = ET.ElementTree(root)
-                tree.write(fo)
-
-
-    def save_brew_as(self):
+        temp.text = str(self.ui.brew_params.item(0, 0).text())
+        eff.text = str(self.ui.brew_params.item(0, 1).text())
+        vol.text = str(self.ui.brew_params.item(0, 2).text())
+        EBU.text = str(self.ui.brew_results.item(0, 0).text())
+        EBC.text = str(self.ui.brew_results.item(0, 1).text())
+        OG.text = str(self.ui.brew_results.item(0, 2).text())
+        procNote.text = str(self.textEd.txt.toPlainText())
 
         dir = './Brews'
         if not os.path.isdir(dir): os.makedirs(dir)
-        fname = self.brew_filename if self.brew_filename is not None else "."
-        fname = unicode(QtGui.QFileDialog.getSaveFileName(self))
-        self.brew_filename = fname 
-        self.save_brew()
+        path = './Brews/' + fname
+        with open(path, "w") as fo:
+            self.ui.label_brewName.setText(fname)
+            tree = ET.ElementTree(root)
+            tree.write(fo)
 
 
     def save_notes(self):
-
 
         style = str(self.ui.box_style.currentText())
         taste = self.ui.tastingNotes.toPlainText()
@@ -925,6 +898,7 @@ class Mainwindow (QtGui.QMainWindow):
 
     def load_brew(self, name):
         
+        """Loads brew selected from calendar/search into review panel"""
         self.loadingBrew = True
         self.grainRecipe_list = []
         self.hopRecipe_list = []
@@ -973,21 +947,29 @@ class Mainwindow (QtGui.QMainWindow):
 
                 if elem.tag =='Process':
                     if elem.text != None:
-                        self.ui.processNotes.setPlainText(elem.text) 
+                        self.ui.processNotes.setPlainText(elem.text)
+                    else:
+                        self.ui.processNotes.clear() 
 
                 if elem.tag =='Tasting':
                     if elem.text != None:
                         self.ui.tastingNotes.setPlainText(elem.text)
+                    else:
+                        self.ui.tastingNotes.clear()
 
                 if elem.tag == 'Style':
                     if elem.text != None:
                         style = elem.text
                         index = self.ui.box_style.findText(style)
                         self.ui.box_style.setCurrentIndex(index)
+                    else:
+                        self.ui.box_style.setCurrentIndex(0)
 
                 if elem.tag == 'Rating':
                     if elem.text != None:
                         self.ui.rating.setValue(int(elem.text))
+                    else:
+                        self.ui.rating.setValue(0)
 
                 if elem.tag == 'EBU':
                     ebu = str(elem.text)
@@ -1015,6 +997,8 @@ class Mainwindow (QtGui.QMainWindow):
 
 
     def useRecipe(self):
+
+        """Loads recipe from review panel into recipe panel"""
 
         if self.grain_list == []:
             msg = "Error: no stock data"
