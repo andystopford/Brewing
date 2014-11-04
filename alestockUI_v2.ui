@@ -12,8 +12,8 @@
   </property>
   <property name="font">
    <font>
-    <weight>75</weight>
-    <bold>true</bold>
+    <weight>50</weight>
+    <bold>false</bold>
    </font>
   </property>
   <property name="windowTitle">
@@ -45,9 +45,9 @@
    <widget class="QTableWidget" name="grain_recipe">
     <property name="geometry">
      <rect>
-      <x>418</x>
+      <x>463</x>
       <y>453</y>
-      <width>223</width>
+      <width>285</width>
       <height>81</height>
      </rect>
     </property>
@@ -59,7 +59,7 @@
     </property>
     <property name="maximumSize">
      <size>
-      <width>250</width>
+      <width>1000</width>
       <height>16777215</height>
      </size>
     </property>
@@ -73,13 +73,13 @@
      <number>6</number>
     </property>
     <property name="columnCount">
-     <number>2</number>
+     <number>3</number>
     </property>
     <attribute name="horizontalHeaderVisible">
      <bool>true</bool>
     </attribute>
     <attribute name="horizontalHeaderDefaultSectionSize">
-     <number>101</number>
+     <number>88</number>
     </attribute>
     <attribute name="verticalHeaderVisible">
      <bool>false</bool>
@@ -103,19 +103,24 @@
       <string>Kg.</string>
      </property>
     </column>
+    <column>
+     <property name="text">
+      <string>%</string>
+     </property>
+    </column>
    </widget>
    <widget class="QTableWidget" name="hop_recipe">
     <property name="geometry">
      <rect>
-      <x>650</x>
+      <x>750</x>
       <y>453</y>
-      <width>324</width>
+      <width>285</width>
       <height>81</height>
      </rect>
     </property>
     <property name="minimumSize">
      <size>
-      <width>324</width>
+      <width>0</width>
       <height>0</height>
      </size>
     </property>
@@ -141,7 +146,7 @@
      <bool>true</bool>
     </attribute>
     <attribute name="horizontalHeaderDefaultSectionSize">
-     <number>101</number>
+     <number>88</number>
     </attribute>
     <attribute name="verticalHeaderVisible">
      <bool>false</bool>
@@ -174,7 +179,7 @@
    <widget class="QTableWidget" name="recipe_results">
     <property name="geometry">
      <rect>
-      <x>417</x>
+      <x>462</x>
       <y>544</y>
       <width>101</width>
       <height>104</height>
@@ -202,7 +207,7 @@
      <set>QAbstractItemView::NoEditTriggers</set>
     </property>
     <property name="rowCount">
-     <number>4</number>
+     <number>5</number>
     </property>
     <property name="columnCount">
      <number>1</number>
@@ -217,7 +222,7 @@
      <bool>true</bool>
     </attribute>
     <attribute name="verticalHeaderDefaultSectionSize">
-     <number>25</number>
+     <number>20</number>
     </attribute>
     <attribute name="verticalHeaderMinimumSectionSize">
      <number>25</number>
@@ -239,6 +244,11 @@
     </row>
     <row>
      <property name="text">
+      <string>Temp</string>
+     </property>
+    </row>
+    <row>
+     <property name="text">
       <string>Yeast</string>
      </property>
     </row>
@@ -251,16 +261,16 @@
    <widget class="QLabel" name="label_process">
     <property name="geometry">
      <rect>
-      <x>556</x>
-      <y>649</y>
+      <x>606</x>
+      <y>645</y>
       <width>81</width>
       <height>16</height>
      </rect>
     </property>
     <property name="font">
      <font>
-      <weight>75</weight>
-      <bold>true</bold>
+      <weight>50</weight>
+      <bold>false</bold>
      </font>
     </property>
     <property name="text">
@@ -270,51 +280,19 @@
      <set>Qt::AlignCenter</set>
     </property>
    </widget>
-   <widget class="QTextEdit" name="processNotes">
-    <property name="geometry">
-     <rect>
-      <x>556</x>
-      <y>545</y>
-      <width>196</width>
-      <height>100</height>
-     </rect>
-    </property>
-    <property name="minimumSize">
-     <size>
-      <width>0</width>
-      <height>100</height>
-     </size>
-    </property>
-   </widget>
-   <widget class="QTextEdit" name="tastingNotes">
-    <property name="geometry">
-     <rect>
-      <x>780</x>
-      <y>545</y>
-      <width>196</width>
-      <height>100</height>
-     </rect>
-    </property>
-    <property name="minimumSize">
-     <size>
-      <width>0</width>
-      <height>100</height>
-     </size>
-    </property>
-   </widget>
    <widget class="QLabel" name="label_tastingNotes">
     <property name="geometry">
      <rect>
-      <x>780</x>
-      <y>649</y>
+      <x>830</x>
+      <y>645</y>
       <width>75</width>
       <height>16</height>
      </rect>
     </property>
     <property name="font">
      <font>
-      <weight>75</weight>
-      <bold>true</bold>
+      <weight>50</weight>
+      <bold>false</bold>
      </font>
     </property>
     <property name="text">
@@ -324,67 +302,14 @@
      <set>Qt::AlignCenter</set>
     </property>
    </widget>
-   <widget class="QListWidget" name="search_results">
+   <widget class="QLabel" name="label_rateSearch">
     <property name="geometry">
      <rect>
-      <x>281</x>
-      <y>452</y>
-      <width>121</width>
-      <height>204</height>
+      <x>31</x>
+      <y>618</y>
+      <width>96</width>
+      <height>16</height>
      </rect>
-    </property>
-    <property name="minimumSize">
-     <size>
-      <width>121</width>
-      <height>0</height>
-     </size>
-    </property>
-    <property name="maximumSize">
-     <size>
-      <width>121</width>
-      <height>16777215</height>
-     </size>
-    </property>
-    <property name="dragDropMode">
-     <enum>QAbstractItemView::NoDragDrop</enum>
-    </property>
-   </widget>
-   <widget class="QCalendarWidget" name="calendar">
-    <property name="geometry">
-     <rect>
-      <x>20</x>
-      <y>453</y>
-      <width>256</width>
-      <height>129</height>
-     </rect>
-    </property>
-    <property name="gridVisible">
-     <bool>true</bool>
-    </property>
-    <property name="verticalHeaderFormat">
-     <enum>QCalendarWidget::ISOWeekNumbers</enum>
-    </property>
-    <property name="navigationBarVisible">
-     <bool>true</bool>
-    </property>
-    <property name="dateEditEnabled">
-     <bool>true</bool>
-    </property>
-   </widget>
-   <widget class="QTextEdit" name="search_box">
-    <property name="geometry">
-     <rect>
-      <x>20</x>
-      <y>586</y>
-      <width>256</width>
-      <height>41</height>
-     </rect>
-    </property>
-    <property name="maximumSize">
-     <size>
-      <width>16777215</width>
-      <height>41</height>
-     </size>
     </property>
     <property name="font">
      <font>
@@ -392,50 +317,11 @@
       <bold>false</bold>
      </font>
     </property>
-   </widget>
-   <widget class="QLabel" name="label_rateSearch">
-    <property name="geometry">
-     <rect>
-      <x>21</x>
-      <y>633</y>
-      <width>96</width>
-      <height>16</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <weight>75</weight>
-      <bold>true</bold>
-     </font>
-    </property>
     <property name="text">
      <string>Filter By Rating</string>
     </property>
     <property name="alignment">
      <set>Qt::AlignCenter</set>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="button_search">
-    <property name="geometry">
-     <rect>
-      <x>210</x>
-      <y>633</y>
-      <width>64</width>
-      <height>21</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Search</string>
-    </property>
-   </widget>
-   <widget class="QSpinBox" name="rating_input">
-    <property name="geometry">
-     <rect>
-      <x>115</x>
-      <y>632</y>
-      <width>39</width>
-      <height>22</height>
-     </rect>
     </property>
    </widget>
    <widget class="Line" name="line_8">
@@ -537,12 +423,20 @@
      <property name="font">
       <font>
        <pointsize>12</pointsize>
+       <weight>75</weight>
+       <bold>true</bold>
       </font>
      </property>
     </column>
     <column>
      <property name="text">
       <string>Pkts</string>
+     </property>
+     <property name="font">
+      <font>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
      </property>
     </column>
     <item row="0" column="0">
@@ -591,7 +485,7 @@
      <bool>true</bool>
     </property>
     <property name="rowCount">
-     <number>12</number>
+     <number>24</number>
     </property>
     <attribute name="horizontalHeaderVisible">
      <bool>true</bool>
@@ -608,6 +502,18 @@
     <attribute name="verticalHeaderDefaultSectionSize">
      <number>31</number>
     </attribute>
+    <row/>
+    <row/>
+    <row/>
+    <row/>
+    <row/>
+    <row/>
+    <row/>
+    <row/>
+    <row/>
+    <row/>
+    <row/>
+    <row/>
     <row/>
     <row/>
     <row/>
@@ -685,7 +591,7 @@
     <property name="geometry">
      <rect>
       <x>15</x>
-      <y>15</y>
+      <y>10</y>
       <width>528</width>
       <height>211</height>
      </rect>
@@ -724,7 +630,7 @@
      <bool>true</bool>
     </property>
     <property name="rowCount">
-     <number>12</number>
+     <number>24</number>
     </property>
     <attribute name="horizontalHeaderVisible">
      <bool>true</bool>
@@ -750,6 +656,18 @@
     <attribute name="verticalHeaderDefaultSectionSize">
      <number>31</number>
     </attribute>
+    <row/>
+    <row/>
+    <row/>
+    <row/>
+    <row/>
+    <row/>
+    <row/>
+    <row/>
+    <row/>
+    <row/>
+    <row/>
+    <row/>
     <row/>
     <row/>
     <row/>
@@ -871,8 +789,8 @@
      <widget class="QPushButton" name="button_commit">
       <property name="geometry">
        <rect>
-        <x>205</x>
-        <y>115</y>
+        <x>125</x>
+        <y>120</y>
         <width>70</width>
         <height>21</height>
        </rect>
@@ -921,8 +839,8 @@
      <widget class="QTableWidget" name="brew_params">
       <property name="geometry">
        <rect>
-        <x>12</x>
-        <y>0</y>
+        <x>22</x>
+        <y>10</y>
         <width>271</width>
         <height>48</height>
        </rect>
@@ -938,6 +856,12 @@
         <width>296</width>
         <height>51</height>
        </size>
+      </property>
+      <property name="font">
+       <font>
+        <weight>75</weight>
+        <bold>true</bold>
+       </font>
       </property>
       <property name="verticalScrollBarPolicy">
        <enum>Qt::ScrollBarAlwaysOff</enum>
@@ -972,15 +896,33 @@
        <property name="text">
         <string>Mash Temp</string>
        </property>
+       <property name="font">
+        <font>
+         <weight>50</weight>
+         <bold>false</bold>
+        </font>
+       </property>
       </column>
       <column>
        <property name="text">
         <string>Mash Eff</string>
        </property>
+       <property name="font">
+        <font>
+         <weight>50</weight>
+         <bold>false</bold>
+        </font>
+       </property>
       </column>
       <column>
        <property name="text">
         <string>Volume</string>
+       </property>
+       <property name="font">
+        <font>
+         <weight>50</weight>
+         <bold>false</bold>
+        </font>
        </property>
       </column>
       <item row="0" column="0">
@@ -1011,8 +953,8 @@
      <widget class="QTableWidget" name="brew_results">
       <property name="geometry">
        <rect>
-        <x>12</x>
-        <y>50</y>
+        <x>22</x>
+        <y>65</y>
         <width>271</width>
         <height>48</height>
        </rect>
@@ -1028,6 +970,12 @@
         <width>296</width>
         <height>51</height>
        </size>
+      </property>
+      <property name="font">
+       <font>
+        <weight>75</weight>
+        <bold>true</bold>
+       </font>
       </property>
       <property name="verticalScrollBarPolicy">
        <enum>Qt::ScrollBarAlwaysOff</enum>
@@ -1065,23 +1013,47 @@
        <property name="text">
         <string>EBU</string>
        </property>
+       <property name="font">
+        <font>
+         <weight>50</weight>
+         <bold>false</bold>
+        </font>
+       </property>
       </column>
       <column>
        <property name="text">
         <string>EBC</string>
+       </property>
+       <property name="font">
+        <font>
+         <weight>50</weight>
+         <bold>false</bold>
+        </font>
        </property>
       </column>
       <column>
        <property name="text">
         <string>OG</string>
        </property>
+       <property name="font">
+        <font>
+         <weight>50</weight>
+         <bold>false</bold>
+        </font>
+       </property>
       </column>
       <item row="0" column="0">
+       <property name="text">
+        <string/>
+       </property>
        <property name="textAlignment">
         <set>AlignHCenter|AlignVCenter|AlignCenter</set>
        </property>
       </item>
       <item row="0" column="1">
+       <property name="text">
+        <string/>
+       </property>
        <property name="textAlignment">
         <set>AlignHCenter|AlignVCenter|AlignCenter</set>
        </property>
@@ -1094,198 +1066,6 @@
         <set>AlignHCenter|AlignVCenter|AlignCenter</set>
        </property>
       </item>
-     </widget>
-     <widget class="QTableWidget" name="yeast_use">
-      <property name="geometry">
-       <rect>
-        <x>12</x>
-        <y>100</y>
-        <width>185</width>
-        <height>48</height>
-       </rect>
-      </property>
-      <property name="minimumSize">
-       <size>
-        <width>1</width>
-        <height>48</height>
-       </size>
-      </property>
-      <property name="maximumSize">
-       <size>
-        <width>201</width>
-        <height>51</height>
-       </size>
-      </property>
-      <property name="verticalScrollBarPolicy">
-       <enum>Qt::ScrollBarAlwaysOff</enum>
-      </property>
-      <property name="horizontalScrollBarPolicy">
-       <enum>Qt::ScrollBarAlwaysOff</enum>
-      </property>
-      <property name="dragDropMode">
-       <enum>QAbstractItemView::DropOnly</enum>
-      </property>
-      <attribute name="horizontalHeaderDefaultSectionSize">
-       <number>90</number>
-      </attribute>
-      <attribute name="horizontalHeaderHighlightSections">
-       <bool>true</bool>
-      </attribute>
-      <attribute name="horizontalHeaderMinimumSectionSize">
-       <number>20</number>
-      </attribute>
-      <attribute name="verticalHeaderVisible">
-       <bool>false</bool>
-      </attribute>
-      <attribute name="verticalHeaderDefaultSectionSize">
-       <number>25</number>
-      </attribute>
-      <attribute name="verticalHeaderHighlightSections">
-       <bool>true</bool>
-      </attribute>
-      <row>
-       <property name="text">
-        <string/>
-       </property>
-      </row>
-      <column>
-       <property name="text">
-        <string>Yeast</string>
-       </property>
-      </column>
-      <column>
-       <property name="text">
-        <string>Pkts</string>
-       </property>
-      </column>
-      <item row="0" column="0">
-       <property name="textAlignment">
-        <set>AlignHCenter|AlignVCenter|AlignCenter</set>
-       </property>
-      </item>
-      <item row="0" column="1">
-       <property name="textAlignment">
-        <set>AlignHCenter|AlignVCenter|AlignCenter</set>
-       </property>
-      </item>
-     </widget>
-    </widget>
-    <widget class="QWidget" name="tab_timer">
-     <attribute name="title">
-      <string>Timer</string>
-     </attribute>
-     <widget class="QWidget" name="layoutWidget">
-      <property name="geometry">
-       <rect>
-        <x>80</x>
-        <y>40</y>
-        <width>158</width>
-        <height>83</height>
-       </rect>
-      </property>
-      <layout class="QGridLayout" name="gridLayout_2">
-       <item row="0" column="0">
-        <widget class="QSpinBox" name="time_input">
-         <property name="font">
-          <font>
-           <pointsize>18</pointsize>
-           <weight>50</weight>
-           <bold>false</bold>
-          </font>
-         </property>
-         <property name="maximum">
-          <number>999</number>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="1">
-        <widget class="QPlainTextEdit" name="rem_time">
-         <property name="minimumSize">
-          <size>
-           <width>80</width>
-           <height>0</height>
-          </size>
-         </property>
-         <property name="maximumSize">
-          <size>
-           <width>80</width>
-           <height>40</height>
-          </size>
-         </property>
-         <property name="font">
-          <font>
-           <pointsize>18</pointsize>
-           <weight>50</weight>
-           <bold>false</bold>
-          </font>
-         </property>
-         <property name="layoutDirection">
-          <enum>Qt::LeftToRight</enum>
-         </property>
-         <property name="verticalScrollBarPolicy">
-          <enum>Qt::ScrollBarAlwaysOff</enum>
-         </property>
-         <property name="horizontalScrollBarPolicy">
-          <enum>Qt::ScrollBarAlwaysOff</enum>
-         </property>
-         <property name="textInteractionFlags">
-          <set>Qt::NoTextInteraction</set>
-         </property>
-         <property name="backgroundVisible">
-          <bool>false</bool>
-         </property>
-         <property name="centerOnScroll">
-          <bool>true</bool>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="0">
-        <widget class="QLabel" name="label_9">
-         <property name="text">
-          <string>Set Timer</string>
-         </property>
-         <property name="alignment">
-          <set>Qt::AlignCenter</set>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="1">
-        <widget class="QLabel" name="label_17">
-         <property name="text">
-          <string> Mins To Go</string>
-         </property>
-         <property name="alignment">
-          <set>Qt::AlignCenter</set>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="0">
-        <widget class="QPushButton" name="button_startTimer">
-         <property name="maximumSize">
-          <size>
-           <width>80</width>
-           <height>40</height>
-          </size>
-         </property>
-         <property name="text">
-          <string>Start</string>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="1">
-        <widget class="QPushButton" name="button_stopTimer">
-         <property name="maximumSize">
-          <size>
-           <width>80</width>
-           <height>40</height>
-          </size>
-         </property>
-         <property name="text">
-          <string>Stop</string>
-         </property>
-        </widget>
-       </item>
-      </layout>
      </widget>
     </widget>
     <widget class="QWidget" name="tab">
@@ -1342,15 +1122,15 @@
    <widget class="QTableWidget" name="grain_use">
     <property name="geometry">
      <rect>
-      <x>10</x>
+      <x>15</x>
       <y>250</y>
-      <width>478</width>
+      <width>360</width>
       <height>146</height>
      </rect>
     </property>
     <property name="minimumSize">
      <size>
-      <width>478</width>
+      <width>0</width>
       <height>0</height>
      </size>
     </property>
@@ -1363,6 +1143,8 @@
     <property name="font">
      <font>
       <pointsize>12</pointsize>
+      <weight>75</weight>
+      <bold>true</bold>
      </font>
     </property>
     <property name="verticalScrollBarPolicy">
@@ -1384,7 +1166,7 @@
      <bool>true</bool>
     </attribute>
     <attribute name="horizontalHeaderDefaultSectionSize">
-     <number>171</number>
+     <number>120</number>
     </attribute>
     <attribute name="horizontalHeaderStretchLastSection">
      <bool>true</bool>
@@ -1410,30 +1192,48 @@
      <property name="text">
       <string>Grain</string>
      </property>
+     <property name="font">
+      <font>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
     </column>
     <column>
      <property name="text">
       <string>Kg.</string>
+     </property>
+     <property name="font">
+      <font>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
      </property>
     </column>
     <column>
      <property name="text">
       <string>%</string>
      </property>
+     <property name="font">
+      <font>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
     </column>
    </widget>
    <widget class="QTableWidget" name="hop_use">
     <property name="geometry">
      <rect>
-      <x>495</x>
+      <x>390</x>
       <y>250</y>
-      <width>478</width>
+      <width>360</width>
       <height>146</height>
      </rect>
     </property>
     <property name="minimumSize">
      <size>
-      <width>478</width>
+      <width>0</width>
       <height>0</height>
      </size>
     </property>
@@ -1446,6 +1246,8 @@
     <property name="font">
      <font>
       <pointsize>12</pointsize>
+      <weight>75</weight>
+      <bold>true</bold>
      </font>
     </property>
     <property name="verticalScrollBarPolicy">
@@ -1467,7 +1269,7 @@
      <bool>true</bool>
     </attribute>
     <attribute name="horizontalHeaderDefaultSectionSize">
-     <number>171</number>
+     <number>120</number>
     </attribute>
     <attribute name="horizontalHeaderStretchLastSection">
      <bool>true</bool>
@@ -1493,175 +1295,54 @@
      <property name="text">
       <string>Hop</string>
      </property>
+     <property name="font">
+      <font>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
     </column>
     <column>
      <property name="text">
       <string>Grams</string>
+     </property>
+     <property name="font">
+      <font>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
      </property>
     </column>
     <column>
      <property name="text">
       <string>Time</string>
      </property>
+     <property name="font">
+      <font>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
     </column>
-   </widget>
-   <widget class="QLabel" name="label_name">
-    <property name="geometry">
-     <rect>
-      <x>1115</x>
-      <y>452</y>
-      <width>59</width>
-      <height>25</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <pointsize>18</pointsize>
-     </font>
-    </property>
-    <property name="text">
-     <string>Name</string>
-    </property>
-    <property name="alignment">
-     <set>Qt::AlignCenter</set>
-    </property>
-   </widget>
-   <widget class="QLabel" name="label_age">
-    <property name="geometry">
-     <rect>
-      <x>1060</x>
-      <y>495</y>
-      <width>169</width>
-      <height>20</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <pointsize>14</pointsize>
-     </font>
-    </property>
-    <property name="text">
-     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;21 days since brewed&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-    </property>
-    <property name="alignment">
-     <set>Qt::AlignCenter</set>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="button_noteSave">
-    <property name="geometry">
-     <rect>
-      <x>1105</x>
-      <y>620</y>
-      <width>87</width>
-      <height>21</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Save Notes</string>
-    </property>
-   </widget>
-   <widget class="QCheckBox" name="checkBox_active">
-    <property name="geometry">
-     <rect>
-      <x>1115</x>
-      <y>525</y>
-      <width>59</width>
-      <height>21</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Active</string>
-    </property>
-   </widget>
-   <widget class="QWidget" name="layoutWidget">
-    <property name="geometry">
-     <rect>
-      <x>1090</x>
-      <y>590</y>
-      <width>120</width>
-      <height>18</height>
-     </rect>
-    </property>
-    <layout class="QHBoxLayout" name="horizontalLayout">
-     <item>
-      <widget class="QLabel" name="label_rating">
-       <property name="font">
-        <font>
-         <weight>75</weight>
-         <bold>true</bold>
-        </font>
-       </property>
-       <property name="text">
-        <string>Rating</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignCenter</set>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="KRatingWidget" name="rating"/>
-     </item>
-    </layout>
-   </widget>
-   <widget class="QComboBox" name="box_style">
-    <property name="geometry">
-     <rect>
-      <x>1090</x>
-      <y>555</y>
-      <width>121</width>
-      <height>22</height>
-     </rect>
-    </property>
-    <property name="iconSize">
-     <size>
-      <width>20</width>
-      <height>16</height>
-     </size>
-    </property>
-    <item>
+    <item row="0" column="0">
      <property name="text">
-      <string>Style</string>
+      <string/>
      </property>
-    </item>
-    <item>
-     <property name="text">
-      <string>Summer Ale</string>
-     </property>
-    </item>
-    <item>
-     <property name="text">
-      <string>American IPA</string>
-     </property>
-    </item>
-    <item>
-     <property name="text">
-      <string>IPA</string>
-     </property>
-    </item>
-    <item>
-     <property name="text">
-      <string>English Pale Ale</string>
-     </property>
-    </item>
-    <item>
-     <property name="text">
-      <string>Stout</string>
-     </property>
-    </item>
-    <item>
-     <property name="text">
-      <string>Porter</string>
+     <property name="font">
+      <font>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
      </property>
     </item>
    </widget>
    <widget class="QFrame" name="frame">
     <property name="geometry">
      <rect>
-      <x>1025</x>
+      <x>450</x>
       <y>440</y>
-      <width>236</width>
-      <height>211</height>
+      <width>846</width>
+      <height>226</height>
      </rect>
     </property>
     <property name="frameShape">
@@ -1670,31 +1351,206 @@
     <property name="frameShadow">
      <enum>QFrame::Sunken</enum>
     </property>
+    <widget class="QLabel" name="label_rating">
+     <property name="geometry">
+      <rect>
+       <x>735</x>
+       <y>153</y>
+       <width>34</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <weight>50</weight>
+       <bold>false</bold>
+      </font>
+     </property>
+     <property name="text">
+      <string>Rating</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+    </widget>
+    <widget class="QSpinBox" name="rating">
+     <property name="geometry">
+      <rect>
+       <x>775</x>
+       <y>150</y>
+       <width>48</width>
+       <height>22</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>12</pointsize>
+      </font>
+     </property>
+     <property name="maximum">
+      <number>10</number>
+     </property>
+    </widget>
+    <widget class="QComboBox" name="box_style">
+     <property name="geometry">
+      <rect>
+       <x>595</x>
+       <y>150</y>
+       <width>101</width>
+       <height>22</height>
+      </rect>
+     </property>
+     <property name="iconSize">
+      <size>
+       <width>20</width>
+       <height>16</height>
+      </size>
+     </property>
+     <item>
+      <property name="text">
+       <string>Style</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>Summer Ale</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>American IPA</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>IPA</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>English Pale Ale</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>Stout</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>Porter</string>
+      </property>
+     </item>
+    </widget>
+    <widget class="QTextEdit" name="processNotes">
+     <property name="geometry">
+      <rect>
+       <x>150</x>
+       <y>105</y>
+       <width>196</width>
+       <height>100</height>
+      </rect>
+     </property>
+     <property name="minimumSize">
+      <size>
+       <width>0</width>
+       <height>100</height>
+      </size>
+     </property>
+    </widget>
+    <widget class="QTextEdit" name="tastingNotes">
+     <property name="geometry">
+      <rect>
+       <x>375</x>
+       <y>105</y>
+       <width>196</width>
+       <height>100</height>
+      </rect>
+     </property>
+     <property name="minimumSize">
+      <size>
+       <width>0</width>
+       <height>100</height>
+      </size>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="button_useRecipe">
+     <property name="geometry">
+      <rect>
+       <x>595</x>
+       <y>173</y>
+       <width>81</width>
+       <height>21</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Use Recipe</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_name">
+     <property name="geometry">
+      <rect>
+       <x>715</x>
+       <y>187</y>
+       <width>121</width>
+       <height>25</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>14</pointsize>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="text">
+      <string>Name</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+    </widget>
+    <widget class="QFrame" name="frame_4">
+     <property name="geometry">
+      <rect>
+       <x>725</x>
+       <y>182</y>
+       <width>101</width>
+       <height>33</height>
+      </rect>
+     </property>
+     <property name="frameShape">
+      <enum>QFrame::StyledPanel</enum>
+     </property>
+     <property name="frameShadow">
+      <enum>QFrame::Sunken</enum>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="button_saveNotes">
+     <property name="geometry">
+      <rect>
+       <x>595</x>
+       <y>195</y>
+       <width>81</width>
+       <height>21</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Save notes</string>
+     </property>
+    </widget>
    </widget>
-   <widget class="QPushButton" name="button_grainUseUpdate">
+   <widget class="QPushButton" name="button_saveBrew">
     <property name="geometry">
      <rect>
-      <x>20</x>
+      <x>405</x>
       <y>405</y>
       <width>81</width>
       <height>21</height>
      </rect>
     </property>
     <property name="text">
-     <string>Update </string>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="button_hopUseUpdate">
-    <property name="geometry">
-     <rect>
-      <x>510</x>
-      <y>405</y>
-      <width>81</width>
-      <height>21</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Update </string>
+     <string>Save Brew</string>
     </property>
    </widget>
    <widget class="Line" name="line_2">
@@ -1710,21 +1566,398 @@
      <enum>Qt::Horizontal</enum>
     </property>
    </widget>
+   <widget class="QTableWidget" name="yeast_use">
+    <property name="geometry">
+     <rect>
+      <x>775</x>
+      <y>250</y>
+      <width>181</width>
+      <height>51</height>
+     </rect>
+    </property>
+    <property name="minimumSize">
+     <size>
+      <width>1</width>
+      <height>48</height>
+     </size>
+    </property>
+    <property name="maximumSize">
+     <size>
+      <width>201</width>
+      <height>100</height>
+     </size>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>12</pointsize>
+      <weight>75</weight>
+      <bold>true</bold>
+     </font>
+    </property>
+    <property name="verticalScrollBarPolicy">
+     <enum>Qt::ScrollBarAlwaysOff</enum>
+    </property>
+    <property name="horizontalScrollBarPolicy">
+     <enum>Qt::ScrollBarAlwaysOff</enum>
+    </property>
+    <property name="dragDropMode">
+     <enum>QAbstractItemView::DropOnly</enum>
+    </property>
+    <attribute name="horizontalHeaderDefaultSectionSize">
+     <number>90</number>
+    </attribute>
+    <attribute name="horizontalHeaderHighlightSections">
+     <bool>true</bool>
+    </attribute>
+    <attribute name="horizontalHeaderMinimumSectionSize">
+     <number>33</number>
+    </attribute>
+    <attribute name="verticalHeaderVisible">
+     <bool>false</bool>
+    </attribute>
+    <attribute name="verticalHeaderDefaultSectionSize">
+     <number>30</number>
+    </attribute>
+    <attribute name="verticalHeaderHighlightSections">
+     <bool>true</bool>
+    </attribute>
+    <attribute name="verticalHeaderMinimumSectionSize">
+     <number>20</number>
+    </attribute>
+    <row>
+     <property name="text">
+      <string/>
+     </property>
+    </row>
+    <column>
+     <property name="text">
+      <string>Yeast</string>
+     </property>
+     <property name="font">
+      <font>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+    </column>
+    <column>
+     <property name="text">
+      <string>Pkts</string>
+     </property>
+     <property name="font">
+      <font>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+    </column>
+    <item row="0" column="0">
+     <property name="text">
+      <string/>
+     </property>
+     <property name="textAlignment">
+      <set>AlignHCenter|AlignVCenter|AlignCenter</set>
+     </property>
+    </item>
+    <item row="0" column="1">
+     <property name="text">
+      <string/>
+     </property>
+     <property name="textAlignment">
+      <set>AlignHCenter|AlignVCenter|AlignCenter</set>
+     </property>
+    </item>
+   </widget>
+   <widget class="QSpinBox" name="time_input">
+    <property name="geometry">
+     <rect>
+      <x>789</x>
+      <y>326</y>
+      <width>72</width>
+      <height>40</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>18</pointsize>
+      <weight>50</weight>
+      <bold>false</bold>
+     </font>
+    </property>
+    <property name="maximum">
+     <number>999</number>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_9">
+    <property name="geometry">
+     <rect>
+      <x>789</x>
+      <y>368</y>
+      <width>72</width>
+      <height>12</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Set Timer</string>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignCenter</set>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="button_stopTimer">
+    <property name="geometry">
+     <rect>
+      <x>870</x>
+      <y>386</y>
+      <width>72</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="maximumSize">
+     <size>
+      <width>80</width>
+      <height>40</height>
+     </size>
+    </property>
+    <property name="text">
+     <string>Stop</string>
+    </property>
+   </widget>
+   <widget class="QPlainTextEdit" name="rem_time">
+    <property name="geometry">
+     <rect>
+      <x>870</x>
+      <y>326</y>
+      <width>72</width>
+      <height>40</height>
+     </rect>
+    </property>
+    <property name="minimumSize">
+     <size>
+      <width>72</width>
+      <height>0</height>
+     </size>
+    </property>
+    <property name="maximumSize">
+     <size>
+      <width>80</width>
+      <height>40</height>
+     </size>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>18</pointsize>
+      <weight>50</weight>
+      <bold>false</bold>
+     </font>
+    </property>
+    <property name="layoutDirection">
+     <enum>Qt::LeftToRight</enum>
+    </property>
+    <property name="verticalScrollBarPolicy">
+     <enum>Qt::ScrollBarAlwaysOff</enum>
+    </property>
+    <property name="horizontalScrollBarPolicy">
+     <enum>Qt::ScrollBarAlwaysOff</enum>
+    </property>
+    <property name="textInteractionFlags">
+     <set>Qt::NoTextInteraction</set>
+    </property>
+    <property name="backgroundVisible">
+     <bool>false</bool>
+    </property>
+    <property name="centerOnScroll">
+     <bool>true</bool>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="button_startTimer">
+    <property name="geometry">
+     <rect>
+      <x>789</x>
+      <y>386</y>
+      <width>72</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="maximumSize">
+     <size>
+      <width>80</width>
+      <height>40</height>
+     </size>
+    </property>
+    <property name="text">
+     <string>Start</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_17">
+    <property name="geometry">
+     <rect>
+      <x>865</x>
+      <y>368</y>
+      <width>80</width>
+      <height>12</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string> Mins To Go</string>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignCenter</set>
+    </property>
+   </widget>
+   <widget class="QFrame" name="frame_3">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>440</y>
+      <width>411</width>
+      <height>226</height>
+     </rect>
+    </property>
+    <property name="frameShape">
+     <enum>QFrame::StyledPanel</enum>
+    </property>
+    <property name="frameShadow">
+     <enum>QFrame::Sunken</enum>
+    </property>
+    <widget class="QLabel" name="label_plusMinus">
+     <property name="geometry">
+      <rect>
+       <x>90</x>
+       <y>200</y>
+       <width>16</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>+</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="button_search">
+     <property name="geometry">
+      <rect>
+       <x>190</x>
+       <y>175</y>
+       <width>64</width>
+       <height>36</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Search</string>
+     </property>
+    </widget>
+    <widget class="QSpinBox" name="rating_input">
+     <property name="geometry">
+      <rect>
+       <x>105</x>
+       <y>175</y>
+       <width>41</width>
+       <height>22</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>12</pointsize>
+      </font>
+     </property>
+    </widget>
+    <widget class="QLineEdit" name="search_box">
+     <property name="geometry">
+      <rect>
+       <x>20</x>
+       <y>150</y>
+       <width>231</width>
+       <height>20</height>
+      </rect>
+     </property>
+    </widget>
+   </widget>
+   <widget class="QSpinBox" name="ratingPlusMinus">
+    <property name="geometry">
+     <rect>
+      <x>125</x>
+      <y>635</y>
+      <width>41</width>
+      <height>22</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>12</pointsize>
+     </font>
+    </property>
+   </widget>
+   <widget class="QListWidget" name="search_results">
+    <property name="geometry">
+     <rect>
+      <x>285</x>
+      <y>451</y>
+      <width>136</width>
+      <height>206</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QFrame" name="frame_5">
+    <property name="geometry">
+     <rect>
+      <x>620</x>
+      <y>400</y>
+      <width>106</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="frameShape">
+     <enum>QFrame::StyledPanel</enum>
+    </property>
+    <property name="frameShadow">
+     <enum>QFrame::Sunken</enum>
+    </property>
+    <widget class="QLabel" name="label_brewName">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>9</y>
+       <width>85</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>14</pointsize>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="text">
+      <string>TextLabel</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+    </widget>
+   </widget>
+   <widget class="QPushButton" name="button_writeNotes">
+    <property name="geometry">
+     <rect>
+      <x>25</x>
+      <y>405</y>
+      <width>81</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Write Notes</string>
+    </property>
+   </widget>
+   <zorder>frame_3</zorder>
    <zorder>frame</zorder>
    <zorder>line</zorder>
    <zorder>grain_recipe</zorder>
    <zorder>hop_recipe</zorder>
    <zorder>recipe_results</zorder>
    <zorder>label_process</zorder>
-   <zorder>processNotes</zorder>
-   <zorder>tastingNotes</zorder>
    <zorder>label_tastingNotes</zorder>
-   <zorder>search_results</zorder>
-   <zorder>calendar</zorder>
-   <zorder>search_box</zorder>
    <zorder>label_rateSearch</zorder>
-   <zorder>button_search</zorder>
-   <zorder>rating_input</zorder>
    <zorder>line_8</zorder>
    <zorder>yeast_stock</zorder>
    <zorder>hop_stock</zorder>
@@ -1732,15 +1965,19 @@
    <zorder>tabWidget</zorder>
    <zorder>grain_use</zorder>
    <zorder>hop_use</zorder>
-   <zorder>label_name</zorder>
-   <zorder>label_age</zorder>
-   <zorder>button_noteSave</zorder>
-   <zorder>checkBox_active</zorder>
-   <zorder>layoutWidget</zorder>
-   <zorder>box_style</zorder>
-   <zorder>button_grainUseUpdate</zorder>
-   <zorder>button_hopUseUpdate</zorder>
+   <zorder>button_saveBrew</zorder>
    <zorder>line_2</zorder>
+   <zorder>yeast_use</zorder>
+   <zorder>time_input</zorder>
+   <zorder>label_9</zorder>
+   <zorder>button_stopTimer</zorder>
+   <zorder>rem_time</zorder>
+   <zorder>button_startTimer</zorder>
+   <zorder>label_17</zorder>
+   <zorder>ratingPlusMinus</zorder>
+   <zorder>search_results</zorder>
+   <zorder>frame_5</zorder>
+   <zorder>button_writeNotes</zorder>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
@@ -1758,16 +1995,20 @@
     <addaction name="Load_data"/>
     <addaction name="Save_Data"/>
     <addaction name="separator"/>
-    <addaction name="Load_Brew"/>
-    <addaction name="Save_Brew"/>
-    <addaction name="Save_Brew_As"/>
+   </widget>
+   <widget class="QMenu" name="menuPreferences">
+    <property name="title">
+     <string>Preferences</string>
+    </property>
+    <addaction name="button_prefs"/>
    </widget>
    <addaction name="menuFile"/>
+   <addaction name="menuPreferences"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <action name="Load_data">
    <property name="text">
-    <string>Load data</string>
+    <string>Load Data</string>
    </property>
   </action>
   <action name="Save_Data">
@@ -1790,14 +2031,12 @@
     <string>Save Brew As</string>
    </property>
   </action>
+  <action name="button_prefs">
+   <property name="text">
+    <string>Preferences</string>
+   </property>
+  </action>
  </widget>
- <customwidgets>
-  <customwidget>
-   <class>KRatingWidget</class>
-   <extends>QFrame</extends>
-   <header>kratingwidget.h</header>
-  </customwidget>
- </customwidgets>
  <resources/>
  <connections/>
 </ui>
