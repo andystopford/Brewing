@@ -1929,9 +1929,10 @@
    </widget>
    <widget class="QMenu" name="menuPreferences">
     <property name="title">
-     <string>Preferences</string>
+     <string>Window</string>
     </property>
     <addaction name="button_prefs"/>
+    <addaction name="button_hydrCorr"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuPreferences"/>
@@ -1965,6 +1966,11 @@
   <action name="button_prefs">
    <property name="text">
     <string>Preferences</string>
+   </property>
+  </action>
+  <action name="button_hydrCorr">
+   <property name="text">
+    <string>Hydrometer Correction</string>
    </property>
   </action>
  </widget>
