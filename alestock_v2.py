@@ -69,6 +69,7 @@ class Mainwindow (QtGui.QMainWindow):
 
         # Connect signals to slots
         self.ui.button_prefs.triggered.connect(self.prefs)
+        self.ui.button_hydrCorr.triggered.connect(self.hydrCorr)
         self.ui.Save_Data.triggered.connect(self.saveData)
         self.ui.Load_data.triggered.connect(self.loadData)
         self.ui.Save_Brew.triggered.connect(self.saveBrew)
@@ -115,6 +116,7 @@ class Mainwindow (QtGui.QMainWindow):
         self.calendar_search.clicked.connect(self.cellClicked)
         self.saveDialogue = saveDialogue(self)
         self.prefDialogue = prefDialogue(self)
+        self.conversionWindow = conversionWindow(self)
 
     ###########################################################################
     
@@ -137,6 +139,11 @@ class Mainwindow (QtGui.QMainWindow):
     def prefs(self):
 
         self.prefDialogue.exec_()
+
+
+    def hydrCorr(self):
+
+        self.conversionWindow.exec_()
 
 
     def readPrefs(self):
