@@ -1,6 +1,10 @@
 from PyQt4 import QtCore, QtGui
 import xml.etree.cElementTree as ET
+from correctOG import Ui_Dialog
 
+#####################################################################
+#alestock_v2.0_beta_classes
+#####################################################################
 
 class Grain:
     def __init__(self, name, EBC, extr, wgt):
@@ -191,13 +195,15 @@ class saveDialogue(QtGui.QDialog):
         self.brew = ""
 
     def save(self):
+
+        par = self.parent()
         if self.button_brew.isChecked():
-            par = self.parent()
             par.save_brew(self.brew)
         else:
             path = QtCore.QString("./BrewDesign/untitled.xml")
             dlg = QtGui.QFileDialog
             dlg.getSaveFileName(self, "Save Design", path, ".xml")
+        par.brew_dirty = False
         self.close()
 
     def selectDate(self, date):
@@ -275,21 +281,23 @@ class prefDialogue(QtGui.QDialog):
 
     def initParams(self):
 
-        with open(self.path, "r") as fo:
-            tree = ET.ElementTree(file = self.path)
-            root = tree.getroot()
-            for elem in root.iter():
-                if elem.tag == 'Days':
-                    self.spinBox_days.setValue(int(elem.text))
-                if elem.tag == 'Length':
-                    self.spinBox_length.setValue(int(elem.text))
-                if elem.tag == 'Temp':
-                    self.spinBox_temp.setValue(int(elem.text))
-                if elem.tag == 'Eff':
-                    self.spinBox_eff.setValue(int(elem.text))
-                if elem.tag == 'Pkts':
-                    self.spinBox_pkts.setValue(int(elem.text))
-
+        try:
+            with open(self.path, "r") as fo:
+                tree = ET.ElementTree(file = self.path)
+                root = tree.getroot()
+                for elem in root.iter():
+                    if elem.tag == 'Days':
+                        self.spinBox_days.setValue(int(elem.text))
+                    if elem.tag == 'Length':
+                        self.spinBox_length.setValue(int(elem.text))
+                    if elem.tag == 'Temp':
+                        self.spinBox_temp.setValue(int(elem.text))
+                    if elem.tag == 'Eff':
+                        self.spinBox_eff.setValue(int(elem.text))
+                    if elem.tag == 'Pkts':
+                        self.spinBox_pkts.setValue(int(elem.text))
+        except:
+            print "No Preference File Found"
 
     def apply(self):
 
@@ -323,3 +331,31 @@ class prefDialogue(QtGui.QDialog):
         with open(self.path, "w") as fo:
             tree = ET.ElementTree(root)
             tree.write(fo)
+
+
+class conversionWindow(QtGui.QDialog):
+    def __init__(self, parent = None):
+        QtGui.QWidget.__init__(self, parent)
+        self.ui = Ui_Dialog()
+        self.ui.setupUi(self)
+        self.ui.button_calc.clicked.connect(self.calc)
+        self.ui.box_calTemp.setValue(20)
+        self.setWindowTitle("Hydrometer Correction")
+
+
+    def calc(self):
+
+        cg = 0 #corrected sg
+        mg = self.ui.box_mesrOG.value() #measured sg
+        tr = self.ui.box_mesrTemp.value() #temp at measured sg
+        tc = self.ui.box_calTemp.value() #calibration temp
+
+        mg = mg / float(1000) + 1
+        tr = ((tr * 9) / 5) + 32
+        tc = ((tc * 9) / 5) + 32
+
+        cg = mg * ((1.00130346 - 0.000134722124 * tr + 0.00000204052596 * tr**2 - 0.00000000232820948 * tr**3)\
+         / (1.00130346 - 0.000134722124 * tc + 0.00000204052596 * tc**2 - 0.00000000232820948 * tc**3))
+        cg = (cg - 1) * 1000
+        cg = round(cg)
+        self.ui.box_corrOG.setValue(cg)
