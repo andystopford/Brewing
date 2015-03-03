@@ -21,7 +21,8 @@ except AttributeError:
 
 
 #####################################################################################
-#alestock_v2.0_dev
+#alestock_v2.1_dev
+#Unfilled yeast table problem fixed
 #####################################################################################
 
 class Mainwindow (QtGui.QMainWindow):
@@ -941,48 +942,32 @@ class Mainwindow (QtGui.QMainWindow):
             wgt = str(item.get_wgt())
             wgt = "_" + wgt
             wgt = ET.SubElement(name, wgt)
-        
-        if self.used_hop_list:    
-            for item in self.used_hop_list:
-                name = item.get_name()
-                name = str(name)
-                name = name.replace(' ', '_')
-                name = ET.SubElement(hop, name)
-                alpha = str(item.get_alpha())
-                alpha = "_" + alpha
-                alpha = ET.SubElement(name, alpha)
-                wgt = str(item.get_wgt())
-                wgt = "_" + wgt
-                wgt = ET.SubElement(name, wgt)
-                time = str(item.get_time())
-                time = "_" + time
-                time = ET.SubElement(name, time)
-        else:
-            name = "None"
-            alpha = "_0"
-            wgt = "_0"
-            time = "_0"
+          
+        for item in self.used_hop_list:
+            name = item.get_name()
+            name = str(name)
+            name = name.replace(' ', '_')
             name = ET.SubElement(hop, name)
+            alpha = str(item.get_alpha())
+            alpha = "_" + alpha
             alpha = ET.SubElement(name, alpha)
+            wgt = str(item.get_wgt())
+            wgt = "_" + wgt
             wgt = ET.SubElement(name, wgt)
+            time = str(item.get_time())
+            time = "_" + time
             time = ET.SubElement(name, time)
 
-        if self.used_yeast:
-            usedYeast = self.ui.yeast_use.item(0, 0).text()
-            print self.used_yeast
-        else:
-            usedYeast = "None"
-            print "none"
-        usedYeast = str(usedYeast)
-        usedYeast = usedYeast.replace(' ', '_')
-        usedYeast = ET.SubElement(yeast, usedYeast)
 
-        if self.pkt_use != None:
-            pkts = self.pkt_use
-        else:
-            pkts = 0
-        pkts = str(pkts)
-        usedYeast.text = pkts
+        if self.used_yeast:     #Check field isn't empty to prevent .xml errors
+            usedYeast = self.ui.yeast_use.item(0, 0).text()
+            usedYeast = str(usedYeast)
+            usedYeast = usedYeast.replace(' ', '_')
+            usedYeast = ET.SubElement(yeast, usedYeast)
+            if self.pkt_use != None:
+                pkts = self.pkt_use
+                pkts = str(pkts)
+                usedYeast.text = pkts
 
         temp.text = str(self.ui.brew_params.item(0, 0).text())
         eff.text = str(self.ui.brew_params.item(0, 1).text())

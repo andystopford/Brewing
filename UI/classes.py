@@ -198,7 +198,7 @@ class saveDialogue(QtGui.QDialog):
 
         par = self.parent()
         if self.button_brew.isChecked():
-            par.save_brew(self.brew)
+            par.saveBrew(self.brew)
         else:
             path = QtCore.QString("./BrewDesign/untitled.xml")
             dlg = QtGui.QFileDialog
