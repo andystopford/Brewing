@@ -3,6 +3,7 @@ import sys, time, math, os.path
 import xml.etree.cElementTree as ET
 sys.path.append("./UI")
 sys.path.append("./Data")
+from operator import itemgetter
 from PyQt4 import QtCore, QtGui
 from  alestockUI_v2 import Ui_MainWindow
 from classes import * 
@@ -142,7 +143,7 @@ class Mainwindow (QtGui.QMainWindow):
         self.ui.label_brewName.setText("")
         self.hiLightDate()
         self.readPrefs()
-        self.setWindowTitle("Alestock v 2.0")
+        self.setWindowTitle("Alestock v 2.1")
 
 
     def prefs(self):
@@ -883,12 +884,15 @@ class Mainwindow (QtGui.QMainWindow):
 
         """Saves tasting notes only (and style and rating)"""
 
+        procNote = self.ui.processNotes.toPlainText()
         style = str(self.ui.box_style.currentText())
         taste = self.ui.tastingNotes.toPlainText()
         rating = str(self.ui.rating.value())
         path =  'Brews' + '/' + self.recipe_filename
         tree = ET.parse(path)
         root = tree.getroot()
+        for elem in root.iter('Process'):
+            elem.text = str(procNote)
         for elem in root.iter('Style'):
             elem.text = style
         for elem in root.iter('Tasting'):
@@ -1030,10 +1034,10 @@ class Mainwindow (QtGui.QMainWindow):
                 if elem.tag == 'Yeast':
                     for yeast in elem:
                         name = yeast.tag
-                        pkts = yeast.text
+                        #pkts = yeast.text    #no need for this with current GUI
                     name = name.replace('_', ' ')
                     name = QtGui.QTableWidgetItem(name)
-                    pkts = QtGui.QTableWidgetItem(pkts)
+                    #pkts = QtGui.QTableWidgetItem(pkts)
                     self.ui.recipe_results.setItem(0, 4, name)
 
                 if elem.tag =='Process':
@@ -1172,13 +1176,16 @@ class Mainwindow (QtGui.QMainWindow):
             if not brewFile.startswith('.'): #filter unix hidden files
                 day = int(brewFile[0:2])
                 month = str(brewFile[2:5])
-                year = int('20'+brewFile[5:7])       
+                year = int('20' + brewFile[5:7])       
                 numMonth = int(self.months[month])
                 date = QtCore.QDate(year, numMonth, day)
-                brewList.append(date)
-                #fileList.append(brewFile)
-                self.ui.file_list.addItem(brewFile)
-        self.calendar_search.dates(brewList)
+                brewList.append(date)   #list of dates for calendar
+                date_tuple = (day, numMonth, year, brewFile)    #for date sorting
+                fileList.append(date_tuple)                     #in file list pane
+        self.calendar_search.dates(brewList)    #adds dates to calendar
+            
+        for item in sorted(fileList, key = itemgetter(2, 1, 0)):    #sort by year, month, day
+            self.ui.file_list.addItem(item[3]) #sorted list
 
 
     def loadSelecn(self):

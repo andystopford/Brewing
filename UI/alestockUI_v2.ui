@@ -1603,7 +1603,7 @@
       </rect>
      </property>
     </widget>
-    <zorder>layoutWidget</zorder>
+    <zorder>search_results</zorder>
     <zorder>file_search</zorder>
    </widget>
    <widget class="QFrame" name="frame_5">
@@ -1999,7 +1999,7 @@
    </widget>
    <widget class="QMenu" name="menuPreferences">
     <property name="title">
-     <string>Window</string>
+     <string>Tools</string>
     </property>
     <addaction name="button_prefs"/>
     <addaction name="button_hydrCorr"/>
