@@ -243,6 +243,8 @@ class Mainwindow (QtGui.QMainWindow):
             self.useHop()
             self.usedHop_update()
             self.hopGrp_update()
+            self.useYeast()
+            self.usedYeast_update()
             self.yeastGrp_update()
             self.brew_dirty = True
             self.stock_dirty = True
@@ -253,7 +255,7 @@ class Mainwindow (QtGui.QMainWindow):
     def grainGrp_update(self):
 
         """ Adds an instance of class Grain to grain_list list of
-        instances, sorts the list by EBC value and calls grain_table_update"""
+        instances, sorts the list by EBC value and calls grainTable_update"""
 
         self.grain_list = []        
         for row in xrange(self.ui.grain_stock.rowCount()):
@@ -325,18 +327,21 @@ class Mainwindow (QtGui.QMainWindow):
                         self.ui.grain_use.removeRow(row)
                     else:
                         total += wgt              
-                        a_used_grain = Used_Grain(name, ebc, extr, wgt)
+                        a_used_grain = Grain(name, ebc, extr, wgt)
                         self.used_grain_list.append(a_used_grain)
-
 
         if total > 0:   # Calculate percentages in table
             for item in self.used_grain_list:
                 pos = self.used_grain_list.index(item)
-                wgt = float(Used_Grain.get_wgt(item))
+                wgt = float(Grain.get_wgt(item))
                 perCent = int((wgt / total) * 100)  
                 perCent = str(perCent)
                 perCent = QtGui.QTableWidgetItem(perCent)
                 self.ui.grain_use.setItem(pos, 2, perCent)
+
+        rowCount = len(self.used_grain_list)    #Ensure extra rows available
+        if len(self.used_grain_list) > 6:
+            self.ui.grain_use.setRowCount(rowCount + 1)
          
         self.ui.grain_use.clearSelection()              
         self.grain_infoCalc()
@@ -352,9 +357,9 @@ class Mainwindow (QtGui.QMainWindow):
 
         for item in self.used_grain_list:
             pos = self.used_grain_list.index(item)
-            wgt = float(Used_Grain.get_wgt(item))
-            extr = float(Used_Grain.get_extr(item))
-            col = int(Used_Grain.get_ebc(item))
+            wgt = float(Grain.get_wgt(item))
+            extr = float(Grain.get_extr(item))
+            col = int(Grain.get_ebc(item))
             deg = (extr * wgt * (self.mash_eff / 100)) / self.length
             self.mash_deg += deg
             col *= wgt     
@@ -418,9 +423,9 @@ class Mainwindow (QtGui.QMainWindow):
 
         for item in self.used_grain_list:
             pos = self.used_grain_list.index(item)
-            name = Used_Grain.get_name(item)
-            wgt = str(Used_Grain.get_wgt(item)) #tablewidget won't accept float. Gawdnosewhy
-            ebc = Used_Grain.get_ebc(item)
+            name = Grain.get_name(item)
+            wgt = str(Grain.get_wgt(item)) #tablewidget won't accept float. Gawdnosewhy
+            ebc = Grain.get_ebc(item)
 
             name = QtGui.QTableWidgetItem(name)
             self.ui.grain_use.setItem(pos, 0, name)
@@ -438,24 +443,18 @@ class Mainwindow (QtGui.QMainWindow):
 
         for item in self.grainRecipe_list:
             pos = self.grainRecipe_list.index(item)
-            name = Used_Grain.get_name(item)
-            wgt = str(Used_Grain.get_wgt(item)) 
+            name = Grain.get_name(item)
+            wgt = str(Grain.get_wgt(item))
+            calcWgt = float(Grain.get_wgt(item))
+
+            total += calcWgt
+            perCent = int((calcWgt / total) * 100)  
+            perCent = str(perCent)
 
             name = QtGui.QTableWidgetItem(name)
             self.ui.grain_recipe.setItem(pos, 0, name)
-
             wgt = QtGui.QTableWidgetItem(wgt)
             self.ui.grain_recipe.setItem(pos, 1, wgt)
-
-            wgt = float(Used_Grain.get_wgt(item))
-            total += wgt
-
-        for item in self.grainRecipe_list:
-            pos = self.grainRecipe_list.index(item)
-            wgt = float(Used_Grain.get_wgt(item))
-            perCent = int((wgt / total) * 100)  
-            perCent = str(perCent)
-
             perCent = QtGui.QTableWidgetItem(perCent)
             self.ui.grain_recipe.setItem(pos, 2, perCent)
 
@@ -475,7 +474,7 @@ class Mainwindow (QtGui.QMainWindow):
                     name = self.ui.hop_stock.item(row,0).text()                
                     alpha = self.ui.hop_stock.item(row,1).text()            
                     wgt = self.ui.hop_stock.item(row,2).text()
-                    a_hop = Hop(name, alpha, wgt)
+                    a_hop = Hop(name, alpha, wgt, 0)
                     if name != "":
                         self.hop_list.append(a_hop)
         num = -1 + len(self.hop_list)
@@ -527,8 +526,12 @@ class Mainwindow (QtGui.QMainWindow):
                             self.ui.hop_use.removeRow(row)
                         else:
                             total += wgt               
-                            a_used_hop = Used_Hop(name, alpha, wgt, time)
+                            a_used_hop = Hop(name, alpha, wgt, time)
                             self.used_hop_list.append(a_used_hop)
+
+        rowCount = len(self.used_hop_list)    #Ensure extra rows available
+        if len(self.used_hop_list) > 6:
+            self.ui.hop_use.setRowCount(rowCount + 1)
 
         self.ui.hop_use.clearSelection() 
         self.hop_infoCalc()
@@ -544,9 +547,9 @@ class Mainwindow (QtGui.QMainWindow):
         vol = float(self.length)
 
         for item in self.used_hop_list:
-            wgt = float(Used_Hop.get_wgt(item))
-            alpha = float(Used_Hop.get_alpha(item))
-            time = float(Used_Hop.get_time(item))
+            wgt = float(Hop.get_wgt(item))
+            alpha = float(Hop.get_alpha(item))
+            time = float(Hop.get_time(item))
             boilComp = 1 - math.e ** (curve * time)
             ut = baseUtn * boilComp
             ebu = (wgt * alpha * ut) / (vol * 10)
@@ -600,9 +603,9 @@ class Mainwindow (QtGui.QMainWindow):
 
         for item in self.used_hop_list:
             pos = self.used_hop_list.index(item)
-            name = Used_Hop.get_name(item)
-            wgt = str(Used_Hop.get_wgt(item)) 
-            time = str(Used_Hop.get_time(item))
+            name = Hop.get_name(item)
+            wgt = str(Hop.get_wgt(item)) 
+            time = str(Hop.get_time(item))
 
             name = QtGui.QTableWidgetItem(name)
             self.ui.hop_use.setItem(pos, 0, name)
@@ -622,9 +625,9 @@ class Mainwindow (QtGui.QMainWindow):
 
         for item in self.hopRecipe_list:
             pos = self.hopRecipe_list.index(item)
-            name = Used_Hop.get_name(item)
-            wgt = str(Used_Hop.get_wgt(item)) 
-            time = str(Used_Hop.get_time(item))
+            name = Hop.get_name(item)
+            wgt = str(Hop.get_wgt(item)) 
+            time = str(Hop.get_time(item))
 
             name = QtGui.QTableWidgetItem(name)
             self.ui.hop_recipe.setItem(pos, 0, name)
@@ -635,6 +638,9 @@ class Mainwindow (QtGui.QMainWindow):
             time = QtGui.QTableWidgetItem(time)
             self.ui.hop_recipe.setItem(pos, 2, time)
 
+        rowCount = len(self.hopRecipe_list)    #Ensure extra rows available
+        if len(self.hopRecipe_list) > 4:
+            self.ui.hop_recipe.setRowCount(rowCount + 1)
 
     ###########################################################################
     #Yeast
@@ -659,8 +665,18 @@ class Mainwindow (QtGui.QMainWindow):
 
     def useYeast(self):
 
-        self.used_yeast = self.ui.yeast_use.item(0, 0).text()
-        self.pkt_use = int(self.ui.yeast_use.item(0, 1).text())
+        self.used_yeast_list = []
+
+        if self.ui.yeast_use.item(0,0) != None:
+            if self.ui.yeast_use.item(0,1) != None:
+                name = self.ui.yeast_use.item(0,0).text()
+                pkts = self.ui.yeast_use.item(0,1).text()
+                a_used_yeast = Yeast(name, pkts)
+                self.used_yeast_list.append(a_used_yeast)
+
+        rowCount = len(self.used_yeast_list)    #Ensure extra rows available
+        self.ui.yeast_use.setRowCount(rowCount + 1)
+
         self.ui.yeast_use.clearSelection() 
         self.commitEnable()
 
@@ -712,6 +728,34 @@ class Mainwindow (QtGui.QMainWindow):
             qty = QtGui.QTableWidgetItem(pkts)
             self.ui.yeast_stock.setItem(pos, 1, qty)
 
+
+    def usedYeast_update(self):
+
+        self.ui.yeast_use.clearContents()
+
+        for item in self.used_yeast_list:
+            pos = self.used_yeast_list.index(item)
+            name = Yeast.get_name(item)
+            pkts = str(Yeast.get_pkts(item)) 
+
+            name = QtGui.QTableWidgetItem(name)
+            self.ui.yeast_use.setItem(pos, 0, name)
+
+            pkts = QtGui.QTableWidgetItem(pkts)
+            self.ui.yeast_use.setItem(pos, 1, pkts)
+
+        self.useYeast()
+
+
+    def yeastRecipe_update(self):
+
+        for item in self.yeastRecipe_list:
+            name = Yeast.get_name(item)
+            #pkts = Yeast.get_pkts(item) Not currently needed
+            name = QtGui.QTableWidgetItem(name)
+            #pkts = QtGui.QTableWidgetItem(pkts)
+            self.ui.recipe_results.setItem(0, 4, name)
+
     ############################################################################
 
 
@@ -731,8 +775,8 @@ class Mainwindow (QtGui.QMainWindow):
         elif reply == QtGui.QMessageBox.Yes:
 
             for item in self.used_grain_list:
-                used_name = Used_Grain.get_name(item)
-                used_wgt = float(Used_Grain.get_wgt(item))
+                used_name = Grain.get_name(item)
+                used_wgt = float(Grain.get_wgt(item))
                 grain_dict = dict([(used_name, used_wgt)])
                 for item in self.grain_list:
                     grain_name = Grain.get_name(item)
@@ -745,8 +789,8 @@ class Mainwindow (QtGui.QMainWindow):
                         self.grainTable_update()
 
             for item in self.used_hop_list:
-                used_name = Used_Hop.get_name(item)
-                used_wgt = float(Used_Hop.get_wgt(item))
+                used_name = Hop.get_name(item)
+                used_wgt = float(Hop.get_wgt(item))
                 hop_dict = dict([(used_name, used_wgt)])
                 for item in self.hop_list:
                     hop_name = Hop.get_name(item)
@@ -758,16 +802,18 @@ class Mainwindow (QtGui.QMainWindow):
                         item.wgt = str(item.wgt)
                         self.hopTable_update()
 
-            self.useYeast()
-            for item in self.yeast_list:
-                yeast_name = Yeast.get_name(item)
-                if yeast_name == self.used_yeast:
-                    item.pkts = int(item.pkts)
-                    item.pkts -= self.pkt_use
-                    if item.pkts < 0:
-                        item.pkts = 0
-                    item.pkts = str(item.pkts)
-                    self.yeastTable_update()  
+            for item in self.used_yeast_list:
+                used_name = Yeast.get_name(item)
+                used_pkts = int(Yeast.get_pkts(item))
+                for item in self.yeast_list:
+                    yeast_name = Yeast.get_name(item)
+                    if yeast_name == used_name:
+                        item.pkts = int(item.pkts)
+                        item.pkts -= used_pkts
+                        if item.pkts < 0:
+                            item.pkts = 0
+                        item.pkts = str(item.pkts)
+                        self.yeastTable_update()  
 
             self.ui.button_commit.setEnabled(False) 
             self.stock_dirty = True                 
@@ -853,7 +899,7 @@ class Mainwindow (QtGui.QMainWindow):
                                 data = data.tag[1:]
                                 hopData.append(data)
                             hopName = hop.tag.replace('_', ' ')
-                            a_hop = Hop(hopName, hopData[0], hopData[1])
+                            a_hop = Hop(hopName, hopData[0], hopData[1], 0)
                             self.hop_list.append(a_hop)
                         self.hopTable_update()
 
@@ -882,7 +928,7 @@ class Mainwindow (QtGui.QMainWindow):
 
     def saveNotes(self):
 
-        """Saves tasting notes only (and style and rating)"""
+        """Saves notes, style and rating from Review Panel"""
 
         procNote = self.ui.processNotes.toPlainText()
         style = str(self.ui.box_style.currentText())
@@ -963,15 +1009,17 @@ class Mainwindow (QtGui.QMainWindow):
             time = ET.SubElement(name, time)
 
 
-        if self.used_yeast:     #Check field isn't empty to prevent .xml errors
-            usedYeast = self.ui.yeast_use.item(0, 0).text()
-            usedYeast = str(usedYeast)
-            usedYeast = usedYeast.replace(' ', '_')
-            usedYeast = ET.SubElement(yeast, usedYeast)
-            if self.pkt_use != None:
-                pkts = self.pkt_use
-                pkts = str(pkts)
-                usedYeast.text = pkts
+
+        for item in self.used_yeast_list:
+            name = item.get_name()
+            name = str(name)
+            name = name.replace(' ', '_')
+            name = ET.SubElement(yeast, name)
+            pkts = item.get_pkts()
+            pkts = str(pkts)
+            pkts = "_" + pkts
+            pkts = ET.SubElement(name, pkts)
+
 
         temp.text = str(self.ui.brew_params.item(0, 0).text())
         eff.text = str(self.ui.brew_params.item(0, 1).text())
@@ -997,6 +1045,7 @@ class Mainwindow (QtGui.QMainWindow):
 
         self.grainRecipe_list = []
         self.hopRecipe_list = []
+        self.yeastRecipe_list = []
 
         if name == False:
             fname = unicode(QtGui.QFileDialog.getOpenFileName(self))
@@ -1016,7 +1065,7 @@ class Mainwindow (QtGui.QMainWindow):
                             data = data.tag[1:]
                             grainData.append(data)
                         grainName = grain.tag.replace('_', ' ')
-                        a_grain = Used_Grain(grainName, grainData[0], grainData[1], grainData[2])
+                        a_grain = Grain(grainName, grainData[0], grainData[1], grainData[2])
                         self.grainRecipe_list.append(a_grain)
                     self.grainRecipe_update()
 
@@ -1027,18 +1076,20 @@ class Mainwindow (QtGui.QMainWindow):
                             data = data.tag[1:]
                             hopData.append(data)
                         hopName = hop.tag.replace('_', ' ')
-                        a_hop = Used_Hop(hopName, hopData[0], hopData[1], hopData[2])
+                        a_hop = Hop(hopName, hopData[0], hopData[1], hopData[2])
                         self.hopRecipe_list.append(a_hop)
                     self.hopRecipe_update()
 
                 if elem.tag == 'Yeast':
                     for yeast in elem:
-                        name = yeast.tag
-                        #pkts = yeast.text    #no need for this with current GUI
-                    name = name.replace('_', ' ')
-                    name = QtGui.QTableWidgetItem(name)
-                    #pkts = QtGui.QTableWidgetItem(pkts)
-                    self.ui.recipe_results.setItem(0, 4, name)
+                        yeastData = []
+                        for data in yeast:
+                            data = data.tag[1:]
+                            yeastData.append(data)
+                        yeastName = yeast.tag.replace('_', ' ')
+                        a_yeast = Yeast(yeastName, yeastData[0])
+                        self.yeastRecipe_list.append(a_yeast)
+                    self.yeastRecipe_update()
 
                 if elem.tag =='Process':
                     if elem.text != None:
@@ -1106,13 +1157,14 @@ class Mainwindow (QtGui.QMainWindow):
         else:
             self.ui.grain_use.clearContents()
             self.ui.hop_use.clearContents()
+            self.ui.yeast_use.clearContents()
             stockList = []
 
             for item in self.grainRecipe_list:
                 pos = self.grainRecipe_list.index(item)
-                name = Used_Grain.get_name(item)
-                wgt = str(Used_Grain.get_wgt(item)) #tablewidget won't accept float. Gawdnosewhy
-                ebc = Used_Grain.get_ebc(item)
+                name = Grain.get_name(item)
+                wgt = str(Grain.get_wgt(item)) #tablewidget won't accept float. Gawdnosewhy
+                ebc = Grain.get_ebc(item)
 
                 name = QtGui.QTableWidgetItem(name)
                 self.ui.grain_use.setItem(pos, 0, name)
@@ -1124,9 +1176,9 @@ class Mainwindow (QtGui.QMainWindow):
 
             for item in self.hopRecipe_list:
                 pos = self.hopRecipe_list.index(item)
-                name = Used_Hop.get_name(item)
-                wgt = str(Used_Hop.get_wgt(item)) 
-                time = str(Used_Hop.get_time(item))
+                name = Hop.get_name(item)
+                wgt = str(Hop.get_wgt(item)) 
+                time = str(Hop.get_time(item))
 
                 name = QtGui.QTableWidgetItem(name)
                 self.ui.hop_use.setItem(pos, 0, name)
@@ -1139,23 +1191,26 @@ class Mainwindow (QtGui.QMainWindow):
 
             self.useHop()
             
+            for item in self.yeastRecipe_list:
+                name = Yeast.get_name(item)
+                pkts = str(Yeast.get_pkts(item))
+
+                name = QtGui.QTableWidgetItem(name)
+                self.ui.yeast_use.setItem(0, 0, name)
+
+                pkts = QtGui.QTableWidgetItem(pkts)
+                self.ui.yeast_use.setItem(0, 1, pkts)
+
+            self.useYeast()
+
             temp = str(self.ui.recipe_results.item(0, 3).text())
             temp = QtGui.QTableWidgetItem(temp)
             self.ui.brew_params.setItem(0, 0, temp)
 
-            yeast = str(self.ui.recipe_results.item(0, 4).text())
-            for item in self.yeast_list:
-                stockName = item.get_name()
-                stockList.append(stockName)
-            if yeast not in stockList:
-                self.errorMessage("Warning: "+yeast+" not in stock")
-            else:
-                yeast = QtGui.QTableWidgetItem(yeast)                        
-                pkts = str(3)
-                pkts = QtGui.QTableWidgetItem(pkts)
-                self.ui.yeast_use.setItem(0, 0, yeast)
-                self.ui.yeast_use.setItem(0, 1, pkts)
-            self.ui.label_brewName.setText("Not Saved")
+
+
+
+        self.ui.label_brewName.setText("Not Saved")
        
 
     def errorMessage(self, msg):
@@ -1168,6 +1223,8 @@ class Mainwindow (QtGui.QMainWindow):
 #Search
     
     def hiLightDate(self):
+
+        """Parses list of brews in brew folder to populate File List and Search Calendar"""
 
         brewList = []
         fileList = []

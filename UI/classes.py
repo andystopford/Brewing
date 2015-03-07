@@ -3,7 +3,7 @@ import xml.etree.cElementTree as ET
 from correctOG import Ui_Dialog
 
 #####################################################################
-#alestock_v2.0_beta_classes
+#alestock_v2.1_beta_classes
 #####################################################################
 
 class Grain:
@@ -24,38 +24,7 @@ class Grain:
         return (self.name)
 
 
-class Used_Grain:
-    def __init__(self, name, EBC, extr, wgt):
-        self.name = name
-        self.wgt = wgt
-        self.extr = extr
-        self.ebc = EBC
-    def get_name(self):
-        return self.name
-    def get_wgt(self):
-        return self.wgt
-    def get_extr(self):
-        return self.extr
-    def get_ebc(self):
-        return self.ebc
-    def __str__(self):
-        return (self.name)
-
-
 class Hop:
-    def __init__(self, name, alpha, wgt):
-        self.name = name
-        self.alpha = alpha
-        self.wgt = wgt
-    def get_name(self):
-        return self.name
-    def get_alpha(self):
-        return self.alpha
-    def get_wgt(self):
-        return self.wgt
-
-
-class Used_Hop:
     def __init__(self, name, alpha, wgt, time):
         self.name = name
         self.wgt = wgt
