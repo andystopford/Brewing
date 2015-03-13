@@ -3,7 +3,7 @@ import xml.etree.cElementTree as ET
 from correctOG import Ui_Dialog
 
 #####################################################################
-#alestock_v2.1_beta_classes
+#alestock_v2.1_classes
 #####################################################################
 
 class Grain:
@@ -23,6 +23,7 @@ class Grain:
     def __str__(self):
         return (self.name)
 
+########################################################################
 
 class Hop:
     def __init__(self, name, alpha, wgt, time):
@@ -41,6 +42,7 @@ class Hop:
     def __str__(self):
         return (self.name)
 
+#########################################################################
 
 class Yeast:
     def __init__(self, name, pkts):
@@ -50,6 +52,8 @@ class Yeast:
         return self.name
     def get_pkts(self):
         return self.pkts
+
+#########################################################################
 
 
 class MessageBox(QtGui.QMessageBox):
@@ -74,6 +78,8 @@ class MessageBox(QtGui.QMessageBox):
             textEdit.setMaximumWidth(16777215)
             textEdit.setSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
         return result
+
+#############################################################################
 
 
 class brewCalendar(QtGui.QCalendarWidget):
@@ -102,9 +108,10 @@ class brewCalendar(QtGui.QCalendarWidget):
         self.dateList = dateList
         self.updateCells()
 
-
     #def cellClicked(self, date):        
     #    Mainwindow.selectBrew(myapp, date)
+
+##########################################################################
 
 
 class textEdit(QtGui.QDialog):
@@ -118,6 +125,8 @@ class textEdit(QtGui.QDialog):
         text = self.txt.toPlainText()
         par = self.parent()
         #par.keepNotes(text)
+
+#############################################################################
 
 
 class saveDialogue(QtGui.QDialog):
@@ -189,12 +198,13 @@ class saveDialogue(QtGui.QDialog):
         brew = "<html><head/><body><p align=center>" + self.brew + "</p></body></html>"
         self.fnameBox.setText(brew)
 
+#############################################################################
 
 
 class prefDialogue(QtGui.QDialog):
     def __init__(self, parent = None):
         QtGui.QWidget.__init__(self, parent)
-        self.resize(273, 206)
+        self.resize(273, 330)
         self.setWindowTitle("Preferences")
 
         self.label_days = QtGui.QLabel(self)
@@ -236,14 +246,27 @@ class prefDialogue(QtGui.QDialog):
 
         self.spinBox_pkts = QtGui.QSpinBox(self)
         self.spinBox_pkts.setGeometry(QtCore.QRect(23, 131, 39, 22))
-        
+
+        self.styleTable = QtGui.QTableWidget(self)
+        self.styleTable.setGeometry(23, 157, 120, 150)
+        self.styleTable.setColumnCount(1)
+        self.styleTable.setHorizontalHeaderItem(0, QtGui.QTableWidgetItem("Style"))
+        self.styleTable.setRowCount(1)
+
 
         self.button_apply = QtGui.QPushButton(self)
-        self.button_apply.setGeometry(QtCore.QRect(90, 165, 81, 21))
+        self.button_apply.setGeometry(QtCore.QRect(169, 265, 81, 21))
         self.button_apply.setText("Apply")
         self.button_apply.clicked.connect(self.apply)
 
+        self.styleTable.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+        self.styleTable.connect(self.styleTable, QtCore.SIGNAL
+            ("customContextMenuRequested(QPoint)"), self.styleTable_RClick)
+
+
         self.path = './Data/prefs.xml'
+
+        self.styleList = []
 
         self.initParams()
 
@@ -265,24 +288,83 @@ class prefDialogue(QtGui.QDialog):
                         self.spinBox_eff.setValue(int(elem.text))
                     if elem.tag == 'Pkts':
                         self.spinBox_pkts.setValue(int(elem.text))
+                    if elem.tag == 'Styles':
+                        for style in elem:
+                            style = style.tag.replace('_', ' ')
+                            self.styleList.append(style)
+            self.styleTable_update()        
         except:
-            print "No Preference File Found"
+            print "No Preference File Found (prefDialogue)"
+        
 
+    def styleTable_update(self):
+
+        pos = 0
+        rows = 1
+        self.styleList.sort()
+        
+        for item in self.styleList:
+            self.styleTable.setRowCount(rows)
+            item = QtGui.QTableWidgetItem(item)
+            self.styleTable.setItem(0, pos, item)
+            pos += 1
+            rows += 1 
+        self.styleTable.setRowCount(rows)
+
+
+    def styleTable_RClick(self):
+
+        self.menu = QtGui.QMenu(self)
+        delete = QtGui.QAction('Delete', self)       
+        self.menu.addAction(delete)
+        self.menu.popup(QtGui.QCursor.pos())
+        delete.triggered.connect(self.deleteStyle)
+
+
+    def deleteStyle(self):
+
+        row = self.styleTable.currentRow()
+        sel = self.styleTable.item(row, 0)
+        row = int(row)
+        self.styleList.pop(row)
+        self.styleTable_update()
+
+        
     def apply(self):
+
+        self.styleList = []
+        pos = 0
+        rows = 1
+
+        for row in xrange(self.styleTable.rowCount()):
+            if self.styleTable.item(row, 0) != None:
+                style = self.styleTable.item(row, 0).text()
+                self.styleList.append(style)
+        self.styleList.sort()        
+
+        for item in self.styleList:
+            self.styleTable.setRowCount(rows)
+            item = QtGui.QTableWidgetItem(item)
+            self.styleTable.setItem(0, pos, item)
+            pos += 1
+            rows += 1   
+        self.styleTable.setRowCount(rows)
 
         self.days = str(self.spinBox_days.text())
         self.length = str(self.spinBox_length.text())
         self.temp = str(self.spinBox_temp.text())
         self.eff = str(self.spinBox_eff.text())
         self.pkts = str(self.spinBox_pkts.text())
-
+                           
         par = self.parent()
-        par.setPrefs(self.days, self.length, self.temp, self.eff, self.pkts)
+        par.setPrefs(self.days, self.length, self.temp, self.eff, self.pkts,\
+            self.styleList)
+
         self.save()
         self.close()
 
 
-    def save(self):
+    def save(self):   
 
         root = ET.Element('Root')
         days = ET.SubElement(root, 'Days')
@@ -290,6 +372,7 @@ class prefDialogue(QtGui.QDialog):
         temp = ET.SubElement(root, 'Temp')
         eff = ET.SubElement(root, 'Eff')
         pkts = ET.SubElement(root, 'Pkts')
+        styles = ET.SubElement(root, 'Styles')
 
         days.text = self.days
         length.text = self.length
@@ -297,9 +380,17 @@ class prefDialogue(QtGui.QDialog):
         eff.text = self.eff
         pkts.text = self.pkts
 
+        for row in xrange(self.styleTable.rowCount()):
+            if self.styleTable.item(row,0) != None:
+                style = str(self.styleTable.item(row,0).text())
+                style = style.replace(' ', '_')     #Prevent XML errors
+                style = ET.SubElement(styles, style)
+
         with open(self.path, "w") as fo:
             tree = ET.ElementTree(root)
             tree.write(fo)
+
+##############################################################################
 
 
 class conversionWindow(QtGui.QDialog):

@@ -23,7 +23,6 @@ except AttributeError:
 
 #####################################################################################
 #Renamed to StockAle_v2.1
-#Unfilled yeast table problem fixed
 #####################################################################################
 
 class Mainwindow (QtGui.QMainWindow):
@@ -67,7 +66,8 @@ class Mainwindow (QtGui.QMainWindow):
         font.setPixelSize(15)
         self.ui.label_plusMinus.setFont(font)
         self.alarm_time = 0
-        self.palette = QtGui.QPalette()         
+        self.palette = QtGui.QPalette()
+        self.styleList = []         
 
         # Connect signals to slots
         self.ui.button_prefs.triggered.connect(self.prefs)
@@ -108,6 +108,7 @@ class Mainwindow (QtGui.QMainWindow):
         self.ui.yeast_use.connect(self.ui.yeast_use, QtCore.SIGNAL
             ("customContextMenuRequested(QPoint)"), self.yeastUse_RClick)
 
+
         self.ui.button_search.clicked.connect(self.search)
         self.ui.search_results.itemClicked.connect(self.loadSearch)
         self.ui.file_list.itemClicked.connect(self.loadSelecn)
@@ -115,6 +116,9 @@ class Mainwindow (QtGui.QMainWindow):
 
         #Sub-classed qt widgets, etc
         self._textEd = textEdit(self)
+
+        
+
         self.calendar_brew = brewCalendar(self, 1045, 473)
         self.calendar_search = brewCalendar(self, 40, 473)
         self.calendar_search.clicked.connect(self.cellClicked)
@@ -127,6 +131,8 @@ class Mainwindow (QtGui.QMainWindow):
         layout.addWidget(self.calendar_search)
         self.ui.file_search.addTab(tab3, "Calendar")
         tab3.setLayout(layout)
+
+        self.ui.box_style.addItems(self.styleList)
 
     ###########################################################################
     
@@ -143,7 +149,7 @@ class Mainwindow (QtGui.QMainWindow):
         self.ui.label_brewName.setText("")
         self.hiLightDate()
         self.readPrefs()
-        self.setWindowTitle("Alestock v 2.1")
+        self.setWindowTitle("StockAle v 2.1")
 
 
     def prefs(self):
@@ -160,6 +166,7 @@ class Mainwindow (QtGui.QMainWindow):
         
         try:
             path = './Data/prefs.xml'
+
             with open(path, "r") as fo:
                 tree = ET.ElementTree(file = path)
                 root = tree.getroot()
@@ -174,13 +181,17 @@ class Mainwindow (QtGui.QMainWindow):
                         self.mash_eff = (str(elem.text))
                     if elem.tag == 'Pkts':
                         self.pkt_use = (str(elem.text))
+                    if elem.tag == 'Styles':
+                        for style in elem:
+                            style = style.tag.replace('_', ' ')
+                            self.styleList.append(style)
             self.setPrefs(self.maxDisplay, self.length, self.mash_temp, \
-                self.mash_eff, self.pkt_use)
+                self.mash_eff, self.pkt_use, self.styleList)
         except:
             self.errorMessage("No Preference File Found")
 
 
-    def setPrefs(self, days, length, temp, eff, pkts):
+    def setPrefs(self, days, length, temp, eff, pkts, styles):
 
         self.maxDisplay = days
 
@@ -199,6 +210,11 @@ class Mainwindow (QtGui.QMainWindow):
         self.pkt_use = pkts
         self.pkt_use = QtGui.QTableWidgetItem(self.pkt_use)
         self.ui.yeast_use.setItem(0, 1, self.pkt_use)
+
+        self.ui.box_style.clear()
+        styles.sort()
+        for item in styles:
+            self.ui.box_style.addItem(item)
 
 
     def keyPressEvent(self, qKeyEvent):
@@ -249,6 +265,7 @@ class Mainwindow (QtGui.QMainWindow):
             self.brew_dirty = True
             self.stock_dirty = True
 
+
     ###########################################################################
     # Grain
 
@@ -283,6 +300,10 @@ class Mainwindow (QtGui.QMainWindow):
         from grain_list. """
 
         self.ui.grain_stock.clearContents()
+
+        rowCount = len(self.grain_list)    #Ensure extra rows available
+        if rowCount > 6:
+            self.ui.grain_stock.setRowCount(rowCount + 1)
 
         for item in self.grain_list:
             pos = self.grain_list.index(item)
@@ -340,7 +361,7 @@ class Mainwindow (QtGui.QMainWindow):
                 self.ui.grain_use.setItem(pos, 2, perCent)
 
         rowCount = len(self.used_grain_list)    #Ensure extra rows available
-        if len(self.used_grain_list) > 6:
+        if rowCount > 6:
             self.ui.grain_use.setRowCount(rowCount + 1)
          
         self.ui.grain_use.clearSelection()              
@@ -487,6 +508,11 @@ class Mainwindow (QtGui.QMainWindow):
     def hopTable_update(self):
 
         self.ui.hop_stock.clearContents()
+
+        rowCount = len(self.hop_list)    #Ensure extra rows available
+        if rowCount > 6:
+            self.ui.hop_stock.setRowCount(rowCount + 1)
+
         for item in self.hop_list:
             pos = self.hop_list.index(item)
             name = Hop.get_name(item)
@@ -530,7 +556,7 @@ class Mainwindow (QtGui.QMainWindow):
                             self.used_hop_list.append(a_used_hop)
 
         rowCount = len(self.used_hop_list)    #Ensure extra rows available
-        if len(self.used_hop_list) > 6:
+        if rowCount > 6:
             self.ui.hop_use.setRowCount(rowCount + 1)
 
         self.ui.hop_use.clearSelection() 
@@ -722,6 +748,11 @@ class Mainwindow (QtGui.QMainWindow):
     def yeastTable_update(self):
 
         self.ui.yeast_stock.clearContents()
+
+        rowCount = len(self.yeast_list)    #Ensure extra rows available
+        if rowCount > 6:
+            self.ui.yeast_stock.setRowCount(rowCount + 1)
+
         for item in self.yeast_list:
             pos = self.yeast_list.index(item)
             name = Yeast.get_name(item)
@@ -924,7 +955,8 @@ class Mainwindow (QtGui.QMainWindow):
 
     def writeNotes(self):
 
-        self._textEd.setGeometry(150, 475, 200, 200)
+        posn = (QtGui.QCursor.pos())
+        self._textEd.setGeometry(posn.x(), posn.y(), 200, 200)
         self._textEd.setWindowTitle("Process Notes")    
         self._textEd.show()
 
@@ -1107,12 +1139,18 @@ class Mainwindow (QtGui.QMainWindow):
                         self.ui.tastingNotes.clear()
 
                 if elem.tag == 'Style':
+
                     if elem.text != None:
                         style = elem.text
                         index = self.ui.box_style.findText(style)
-                        self.ui.box_style.setCurrentIndex(index)
-                    else:
-                        self.ui.box_style.setCurrentIndex(0)
+                        if index != -1:
+                            self.ui.box_style.setCurrentIndex(index)
+                        else:
+                            self.ui.box_style.insertItem(0, style)
+                            self.ui.box_style.setCurrentIndex(0)
+                    else:  
+                        #Sets blank box if no style saved               
+                        self.ui.box_style.setCurrentIndex(-1)   
 
                 if elem.tag == 'Rating':
                     if elem.text != None:
